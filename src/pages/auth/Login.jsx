@@ -1,9 +1,37 @@
-import React from "react";
+import { Checkbox, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, TextField } from "@mui/material";
+import React, { useState } from "react";
 
 export default function Login() {
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
   return (
-    <div>
-      <h1>Login</h1>
+    <div className="flex justify-end p-4 text-white">
+      <Button variant="contained" color="primary" onClick={handleOpen}>
+        Sign In
+      </Button>
+
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle className="text-center p-3 gap-10">Sign In</DialogTitle>
+        <DialogContent className="flex flex-col gap-4 p-3">
+          <TextField placeholder="E-Mail" type= "email" variant="outlined" fullWidth autoFocus />
+          <TextField placeholder="Password" type="password" variant="outlined" fullWidth />
+          <div className="flex justify-between items-center">
+            <FormControlLabel control={<Checkbox />} label="Remember Me" />
+            <Button color="primary">Forgot Password?</Button>
+          </div>
+        </DialogContent>
+        <DialogActions className="flex flex-col gap-2 px-6 pb-6">
+          <Button variant="contained" color="primary" fullWidth>
+            Login
+          </Button>
+          <Button variant="outlined" color="secondary" fullWidth>
+            Sign Up
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
-  )
-}
+  );
+};
