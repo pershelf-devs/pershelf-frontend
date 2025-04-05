@@ -1,15 +1,25 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import axios from "axios";
+
 const Login = () => {
   const { t } = useTranslation();
+  
   const [userInfo, setUserInfo] = useState({
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(userInfo);
+    const response = await axios.post("/api/auth/login", userInfo);
+    console.log(response);
+    if (response?.data?.code === "3") {
+      const userName = response?.data?.values[0]
+      alert(`Username not found: ${userName}`)
+    } else {
+      alert("Login successful")
+    }
   };
 
   return (

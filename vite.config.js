@@ -25,7 +25,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: `https://${configData.server.serverIp}:${configData.server.serverPort}`,
+        target: `http://${configData.server.serverIp}:${configData.server.serverPort}`,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/restapi/v1.0'),
