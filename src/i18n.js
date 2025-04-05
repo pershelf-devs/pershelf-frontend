@@ -1,35 +1,26 @@
-import i18n, { reloadResources } from 'i18next';
+import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import Backend from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
-const languageDetector = {
-  async: true,
-  detect: (callback) => {
-    const language = localStorage.getItem('i18nextLng') || 'en';
-    callback(language);
-  },
-  cacheUserLanguage: (lng) => {
-    localStorage.setItem('i18nextLng', lng);
-  }
-};
+// Çevirileri doğrudan import ediyoruz
+import enTranslation from '../public/locales/en/translation.json';
+import trTranslation from '../public/locales/tr/translation.json';
 
 i18n
-  .use(Backend)
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    resources: {
+      en: {
+        translation: enTranslation
+      },
+      tr: {
+        translation: trTranslation
+      }
+    },
+    lng: localStorage.getItem('i18nextLng') || 'en',
     fallbackLng: 'en',
-    debug: false, 
-    detection: languageDetector,
     interpolation: {
       escapeValue: false
-    },
-    backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json'
-    },
-    ns: ['translation' ],
-    defaultNS: 'translation'
+    }
   });
 
 export default i18n;
