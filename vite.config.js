@@ -11,7 +11,7 @@ if (!fs.existsSync(configPath)) {
 
 const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 if (!configData.server || !configData.server.serverIp || !configData.server.serverPort) {
-  throw new Error('Invalid server configuration.');
+  //throw new Error('Invalid server configuration.');
 }
 
 // https://vite.dev/config/
@@ -25,7 +25,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: `http://${configData.server.serverIp}:${configData.server.serverPort}`,
+        target: `http://${configData.serverIp}:${configData.serverPort}`,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/restapi/v1.0'),
