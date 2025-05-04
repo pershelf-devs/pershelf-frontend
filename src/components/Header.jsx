@@ -20,8 +20,7 @@ const Header = () => {
         <nav className="hidden md:flex gap-6 text-sm font-medium">
           <Link to="/" className="hover:underline">{t("home")}</Link>
           <Link to="/explore" className="hover:underline">{t("explore")}</Link>
-          <Link to="/lists" className="hover:underline">{t("myLists")}</Link>
-          <Link to="/community" className="hover:underline">{t("community")}</Link>
+          <Link to="/community" className="hover:underline">{t("Social")}</Link>
         </nav>
 
         {/* Sağ tarafta Sign In */}

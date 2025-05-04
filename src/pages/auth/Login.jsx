@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const { t } = useTranslation();
-  
+  const navigate = useNavigate();
+
   const [userInfo, setUserInfo] = useState({
     email: "",
     password: "",
@@ -12,13 +14,28 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await axios.post("/api/auth/login", userInfo);
-    console.log(response);
-    if (response?.data?.code === "3") {
-      const userName = response?.data?.values[0]
-      alert(`Username not found: ${userName}`)
-    } else {
-      alert("Login successful")
+
+    try {
+      const response = await axios.post("/api/auth/login", userInfo);
+
+      if (response?.data?.code === "3") {
+        const userName = response?.data?.values?.[0];
+        alert(`Username not found: ${userName}`);
+      } else if (response?.data?.status?.code === "0") {
+        const token = response?.data?.token;
+        if (token) {
+          localStorage.setItem("token", token);
+          alert("Login successful");
+          navigate("/dashboard"); // Giriş sonrası yönlendirme
+        } else {
+          alert("Login succeeded but token missing.");
+        }
+      } else {
+        alert("Login failed. Please check credentials.");
+      }
+    } catch (error) {
+      console.error("Login error:", error.response?.data || error.message);
+      alert("An error occurred during login.");
     }
   };
 
