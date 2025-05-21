@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import Explore from "./pages/explore/Explore";
 import Dashboard from "./pages/dashboard/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
+import Category from "./pages/categories/Category";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
+        <Route path="/category/:name" element={<Category />} />
       </Routes>
       <Footer />
     </Router>
