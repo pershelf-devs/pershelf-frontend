@@ -6,6 +6,9 @@ import Register from "./pages/auth/Register";
 import Header from "./components/Header"; // 👈 ekledik
 import Footer from "./components/Footer";
 import Explore from "./pages/explore/Explore";
+import Dashboard from "./pages/dashboard/Dashboard";
+import PrivateRoute from "./components/PrivateRoute";
+
 function App() {
   return (
     <Router>
@@ -15,6 +18,7 @@ function App() {
         <Route path="/explore" element={<Explore />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
       </Routes>
       <Footer />
     </Router>

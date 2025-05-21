@@ -17,14 +17,16 @@ const Login = () => {
 
     try {
       const response = await axios.post("/api/auth/login", userInfo);
+        console.log("🧾 response.data:", response.data);
 
       if (response?.data?.code === "3") {
         const userName = response?.data?.values?.[0];
         alert(`Username not found: ${userName}`);
       } else if (response?.data?.status?.code === "0") {
-        const token = response?.data?.token;
+        const token = response?.data?.data?.token;
         if (token) {
           localStorage.setItem("token", token);
+          window.dispatchEvent(new Event("storage")); // 👈 tetikleyici
           alert("Login successful");
           navigate("/dashboard"); // Giriş sonrası yönlendirme
         } else {
