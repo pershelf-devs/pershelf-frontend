@@ -9,6 +9,8 @@ import Explore from "./pages/explore/Explore";
 import Dashboard from "./pages/dashboard/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import Category from "./pages/categories/Category";
+import ProfilePage from "./pages/profile/ProfilePage";
+import SettingsPage from "./pages/profile/Settings";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
         <Route path="/category/:name" element={<Category />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
       <Footer />
     </Router>

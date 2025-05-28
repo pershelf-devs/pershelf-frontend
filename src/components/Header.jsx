@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -6,22 +6,32 @@ const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
 
   // Token kontrolü
 useEffect(() => {
-  const checkLogin = () => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
-  };
+  const token = localStorage.getItem("token");
+  setIsLoggedIn(!!token);
 
-  checkLogin(); // ilk kontrol
-
-  window.addEventListener("storage", checkLogin); // her değişiklikte tekrar kontrol et
-
-  return () => {
-    window.removeEventListener("storage", checkLogin);
-  };
+  if (token) {
+    fetch("https://your-api.com/api/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        setUserName(data.username || data.name || "User");
+      })
+      .catch(() => {
+        setUserName("User");
+      });
+  }
 }, []);
+
 
   const handleChangeLanguage = (language) => {
     i18n.changeLanguage(language);
@@ -34,7 +44,7 @@ useEffect(() => {
   };
 
   return (
-    <header className="absolute top-0 left-0 w-full z-20 bg-black/10 backdrop-blur-sm">
+    <header className="w-full bg-[#2a1a0f] text-[#f8f8f2] shadow-md">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center text-white">
         {/* Logo */}
       <Link to={isLoggedIn ? "/dashboard" : "/"}className="text-xl font-bold tracking-wide hover:underline">
@@ -68,12 +78,42 @@ useEffect(() => {
 
           {/* Giriş Durumu */}
           {isLoggedIn ? (
-            <button 
-              onClick={handleLogout}
-              className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200 text-sm font-semibold"
-            >
-              Logout
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsMenuOpen(prev => !prev)}
+                className="bg-white text-[#2a1a0f] px-4 py-2 rounded-md hover:bg-gray-200 text-sm font-semibold"
+              >
+                @{userName}
+              </button>
+
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded-md shadow-lg z-50">
+                  <Link 
+                    to="/profile" 
+                    className="block px-4 py-2 hover:bg-gray-100 text-sm"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <Link 
+                    to="/settings" 
+                    className="block px-4 py-2 hover:bg-gray-100 text-sm"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Settings
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link
               to="/login"
@@ -82,6 +122,7 @@ useEffect(() => {
               {t("signIn")}
             </Link>
           )}
+
         </div>
       </div>
     </header>
