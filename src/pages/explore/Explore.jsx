@@ -22,7 +22,7 @@ const Explore = () => {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center text-white"
+      className="relative min-h-screen bg-cover bg-center text-white"
       style={{ backgroundImage: "url('/images/explore.png')" }}
     >
       <div className="absolute inset-0 bg-black/70 z-0"></div>
@@ -41,29 +41,30 @@ const Explore = () => {
           <div className="grid md:grid-cols-3 gap-6">
             {popularBooks.length === 0
               ? [...Array(3)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow animate-pulse"
-                  >
-                    <div className="w-full h-64 bg-white/20 rounded-md mb-4"></div>
-                    <div className="h-4 bg-white/20 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-white/10 rounded w-1/2"></div>
-                  </div>
-                ))
-              : popularBooks.map((book, index) => (
-                  <div
-                    key={index}
-                    className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
-                  >
-                    <img
-                      src={book.image}
-                      alt={book.title}
-                      className="w-full h-64 object-cover rounded-md mb-4"
-                    />
-                    <h3 className="text-lg font-semibold">{book.title}</h3>
-                    <p className="text-sm text-white/70">by {book.author}</p>
-                  </div>
-                ))}
+            <div
+              key={index}
+              className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow animate-pulse"
+            >
+              <div className="w-full h-64 bg-white/20 rounded-md mb-4"></div>
+              <div className="h-4 bg-white/20 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-white/10 rounded w-1/2"></div>
+            </div>
+          ))
+        : popularBooks.map((book, index) => (
+            <Link
+                key={index}
+                to={`/book/${book.id}`}  // ⬅️ Buradan detay sayfasına gider
+                className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
+              >
+                <img
+                  src={book.image}
+                  alt={book.title}
+                  className="w-full h-64 object-cover rounded-md mb-4"
+                />
+                <h3 className="text-lg font-semibold">{book.title}</h3>
+                <p className="text-sm text-white/70">by {book.author}</p>
+            </Link>
+    ))}
           </div>
         </section>
 

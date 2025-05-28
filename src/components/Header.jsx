@@ -55,7 +55,7 @@ useEffect(() => {
         <nav className="hidden md:flex gap-6 text-sm font-medium">
           <Link to={isLoggedIn ? "/dashboard" : "/"} className="hover:underline">{t("home")}</Link>
           <Link to="/explore" className="hover:underline">{t("explore")}</Link>
-          <Link to="/community" className="hover:underline">{t("Social")}</Link>
+          <Link to="/social" className="hover:underline">{t("Social")}</Link>
         </nav>
 
         {/* Sağ Menü */}
