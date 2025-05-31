@@ -10,8 +10,8 @@ if (!fs.existsSync(configPath)) {
 }
 
 const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-if (!configData.server || !configData.server.serverIp || !configData.server.serverPort) {
-  //throw new Error('Invalid server configuration.');
+if (!configData.serverIp || !configData.serverPort) {
+  throw new Error('Invalid server configuration.');
 }
 
 // https://vite.dev/config/

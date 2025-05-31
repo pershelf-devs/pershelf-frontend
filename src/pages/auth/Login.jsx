@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const Login = () => {
   const { t } = useTranslation();
@@ -13,33 +16,52 @@ const Login = () => {
   });
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const response = await axios.post("/api/auth/login", userInfo);
-        console.log("🧾 response.data:", response.data);
+  try {
+    const response = await axios.post("/api/auth/login", userInfo);
+    const data = response.data;
+    console.log("🧾 Full login response:", data);
 
-      if (response?.data?.code === "3") {
-        const userName = response?.data?.values?.[0];
-        alert(`Username not found: ${userName}`);
-      } else if (response?.data?.status?.code === "0") {
-        const token = response?.data?.data?.token;
-        if (token) {
-          localStorage.setItem("token", token);
-          window.dispatchEvent(new Event("storage")); // 👈 tetikleyici
-          alert("Login successful");
-          navigate("/dashboard"); // Giriş sonrası yönlendirme
-        } else {
-          alert("Login succeeded but token missing.");
-        }
+    if (data?.code === "10") {
+      // Kullanıcı bulunamadı
+      toast.error(`Incorrect email address or password.`);
+    } else if (data?.code === "11") {
+      // Şifre yanlış
+      toast.error("Incorrect email address or password.");
+    } else if (data?.status?.code === "0") {
+      // Başarılı giriş
+      const token = data?.data?.token;
+      const userInfo = data?.data?.userInfo;
+      
+      if (token && userInfo) {
+        // Token'ı kaydet
+        localStorage.setItem("token", token);
+        
+        // Kullanıcı bilgilerini kaydet
+        localStorage.setItem("userInfo", JSON.stringify({
+          id: userInfo.id,
+          username: userInfo.username,
+          email: userInfo.email,
+          name: userInfo.name,
+          surname: userInfo.surname
+        }));
+        
+        window.dispatchEvent(new Event("storage"));
+        toast.success("Login successful!");
+        navigate("/dashboard");
       } else {
-        alert("Login failed. Please check credentials.");
+        toast.warn("Login succeeded but token or user info missing.");
       }
-    } catch (error) {
-      console.error("Login error:", error.response?.data || error.message);
-      alert("An error occurred during login.");
+    } else {
+      toast.error(`Login failed. Unexpected code: ${data?.code || data?.status?.code}`);
     }
-  };
+  } catch (error) {
+    console.error("❌ Login catch error:", error.response?.data || error.message);
+    toast.error("An error occurred during login.");
+  }
+};
+  
 
   return (
     <div
@@ -73,12 +95,24 @@ const Login = () => {
         </form>
 
         <p className="text-sm mt-4 text-center">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <a href="/register" className="underline text-white/90 hover:text-white">
             Register here
           </a>
         </p>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 };

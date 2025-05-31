@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 
 const Explore = () => {
   const [popularBooks, setPopularBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState([]);
 
   const categories = [
@@ -15,9 +17,17 @@ const Explore = () => {
   ];
 
   useEffect(() => {
-    // API çağrıları burada olacak
-    // axios.get("/api/books/popular").then(res => setPopularBooks(res.data));
-    // axios.get("/api/recommendations").then(res => setRecommendations(res.data));
+    axios
+      .post("/api/books/discover/most-reads", { limit: 6 })
+      .then(res => {
+        if (res.data?.status?.code === "0") {
+          setPopularBooks(res.data.books || []);
+        }
+      })
+      .catch(err => {
+        console.error("API error:", err.response?.data || err.message);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -35,40 +45,60 @@ const Explore = () => {
           </p>
         </div>
 
-        {/* En Çok Okunanlar */}
+        {/* 📚 Most Read Books */}
         <section>
           <h2 className="text-2xl font-bold mb-6">📚 Most Read Books</h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {popularBooks.length === 0
+            {loading
               ? [...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow animate-pulse"
-            >
-              <div className="w-full h-64 bg-white/20 rounded-md mb-4"></div>
-              <div className="h-4 bg-white/20 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-white/10 rounded w-1/2"></div>
-            </div>
-          ))
-        : popularBooks.map((book, index) => (
-            <Link
-                key={index}
-                to={`/book/${book.id}`}  // ⬅️ Buradan detay sayfasına gider
-                className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
-              >
-                <img
-                  src={book.image}
-                  alt={book.title}
-                  className="w-full h-64 object-cover rounded-md mb-4"
-                />
-                <h3 className="text-lg font-semibold">{book.title}</h3>
-                <p className="text-sm text-white/70">by {book.author}</p>
-            </Link>
-    ))}
+                  <div
+                    key={index}
+                    className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow animate-pulse"
+                  >
+                    <div className="w-full h-64 bg-white/20 rounded-md mb-4"></div>
+                    <div className="h-4 bg-white/20 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-white/10 rounded w-1/2"></div>
+                  </div>
+                ))
+              : popularBooks.length > 0
+              ? popularBooks.map((book, index) => (
+                  <Link
+                    key={book._id || index}
+                    to={`/book/${book._id}`}
+                    className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
+                  >
+                    <img
+                      src={book.image_url || book.image || "/images/book-placeholder.png"}
+                      alt={book.title || "Book"}
+                      className="w-full h-64 object-cover rounded-md mb-4"
+                      onError={(e) => {
+                        e.target.src = "/images/book-placeholder.png";
+                      }}
+                    />
+                    <h3 className="text-lg font-semibold">{book.title || "Unknown Title"}</h3>
+                    <p className="text-sm text-white/70">by {book.author || "Unknown Author"}</p>
+                    {book.rating && (
+                      <div className="mt-2 flex items-center">
+                        <span className="text-yellow-400 text-sm">
+                          {"★".repeat(Math.floor(book.rating))}
+                          {"☆".repeat(5 - Math.floor(book.rating))}
+                        </span>
+                        <span className="text-white/60 text-xs ml-1">({book.rating})</span>
+                      </div>
+                    )}
+                  </Link>
+                ))
+              : (
+                <div className="col-span-full text-center py-12">
+                  <div className="text-6xl mb-4">📚</div>
+                  <h3 className="text-xl font-semibold mb-2">No books found</h3>
+                  <p className="text-white/70">Check back later for popular books!</p>
+                </div>
+              )}
           </div>
         </section>
 
-        {/* Kitap Kategorileri (statik olarak kalıyor) */}
+        {/* 🗂️ Book Categories */}
         <section>
           <h2 className="text-2xl font-bold mb-6">🗂️ Book Categories</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -84,7 +114,7 @@ const Explore = () => {
           </div>
         </section>
 
-        {/* Kullanıcı Tavsiyeleri */}
+        {/* 💬 User Recommendations */}
         <section>
           <h2 className="text-2xl font-bold mb-6">💬 User Recommendations</h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -107,8 +137,10 @@ const Explore = () => {
                     key={index}
                     className="bg-white/10 backdrop-blur-md p-5 rounded-xl text-sm italic text-white/90"
                   >
-                    “{rec.quote}”
-                    <div className="mt-3 text-right font-semibold text-white/60">– {rec.user}</div>
+                    "{rec.quote}"
+                    <div className="mt-3 text-right font-semibold text-white/60">
+                      – {rec.user}
+                    </div>
                   </div>
                 ))}
           </div>
