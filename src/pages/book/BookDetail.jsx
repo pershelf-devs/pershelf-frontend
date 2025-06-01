@@ -20,91 +20,49 @@ const BookDetail = () => {
     fetchFromCoreBackend(id);
   }, [id]);
 
-  const fetchFromCoreBackend = useCallback((bookId) => {
+  const fetchFromCoreBackend = useCallback((id) => {
     setLoading(true);
-    
-    const requestUrl = `/restapi/v1.0/books/${bookId}`;
-    console.log("🚀 Starting Core Backend Request:", {
-      url: requestUrl,
-      bookId: bookId,
-      bookIdType: typeof bookId,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Core backend book detail endpoint - /restapi/v1.0 path kullan
+  
     axios
-      .get(requestUrl)
-      .then(res => {
-        console.log("✅ Core Backend Success Response:", {
-          status: res.status,
-          statusText: res.statusText,
-          headers: res.headers,
-          fullResponse: res,
-          data: res.data,
-          dataType: typeof res.data,
-          dataKeys: res.data ? Object.keys(res.data) : 'No keys',
-          dataLength: res.data ? JSON.stringify(res.data).length : 0,
-          hasStatus: res.data?.status ? true : false,
-          statusCode: res.data?.status?.code,
-          hasBook: res.data?.book ? true : false,
-          hasData: res.data?.data ? true : false,
-          timestamp: new Date().toISOString()
-        });
-
-        // Response data structure'ını detaylı incele
-        if (res.data) {
-          console.log("📊 Response Data Analysis:", {
-            topLevelKeys: Object.keys(res.data),
-            statusExists: 'status' in res.data,
-            statusValue: res.data.status,
-            bookExists: 'book' in res.data,
-            bookValue: res.data.book,
-            dataExists: 'data' in res.data,
-            dataValue: res.data.data,
-            directBookData: res.data
-          });
+      .post("/api/books/get/id", parseInt(id), {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then((res) => {
+        const data = res.data;
+  
+        if (typeof data === "string" && data.startsWith("<!DOCTYPE html")) {
+          throw new Error("Expected JSON response, but received HTML");
         }
-
-        if (res.data?.status?.code === "0") {
-          const bookData = res.data.book || res.data.data;
-          console.log("📖 Setting Book Data:", bookData);
+  
+        // 💡 Backend spesifik hata kontrolü
+        if (data.status?.code === "3") {
+          setError(data.values?.[0] || "Book not found.");
+          return;
+        }
+  
+        let bookData = null;
+  
+        if (data.status?.code === "0" && Array.isArray(data.books) && data.books.length > 0) {
+          bookData = data.books[0];
+        } else if (!("status" in data)) {
+          bookData = data;
+        }
+  
+        if (bookData) {
+          console.log("📖 Setting Book:", bookData);
           setBook(bookData);
-        } else if (res.data && !res.data.status) {
-          // Status field yoksa direkt data'yı kitap olarak kabul et
-          console.log("📖 No status field, using direct data as book:", res.data);
-          setBook(res.data);
         } else {
-          console.log("❌ Book not found - status check failed:", {
-            hasStatus: !!res.data?.status,
-            statusCode: res.data?.status?.code,
-            responseData: res.data
-          });
-          setError("Book not found in core backend");
+          setError("Book not found or backend is returning invalid format.");
         }
       })
-      .catch(err => {
-        console.error("💥 Core Backend Error Details:", {
-          message: err.message,
-          responseStatus: err.response?.status,
-          responseStatusText: err.response?.statusText,
-          responseData: err.response?.data,
-          responseHeaders: err.response?.headers,
-          requestConfig: err.config,
-          errorCode: err.code,
-          fullError: err,
-          timestamp: new Date().toISOString()
-        });
-        
-        // Backend endpoint henüz yoksa daha friendly bir mesaj göster
-        if (err.response?.status === 404 || err.code === 'ERR_BAD_REQUEST') {
-          setError("Book details will be available soon. Backend endpoint is being developed.");
-        } else {
-          setError("Failed to load book details from core backend. Please try again.");
-        }
+      .catch((err) => {
+        console.error("💥 Core Backend Error:", err);
+        setError("Book not found or backend is returning invalid format.");
       })
       .finally(() => {
         setLoading(false);
-        console.log("🏁 Request completed, loading set to false");
       });
   }, []);
 
