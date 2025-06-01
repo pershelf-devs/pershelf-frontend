@@ -23,7 +23,7 @@ const Login = () => {
     const data = response.data;
     console.log("🧾 Full login response:", data);
 
-    if (data?.code === "10") {
+    if (data?.code === "3") {
       // Kullanıcı bulunamadı
       toast.error(`Incorrect email address or password.`);
     } else if (data?.code === "11") {

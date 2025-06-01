@@ -15,13 +15,25 @@ const Explore = () => {
     "Biography",
     "Fantasy"
   ];
+  
 
   useEffect(() => {
     axios
       .post("/api/books/discover/most-reads", { limit: 6 })
       .then(res => {
         if (res.data?.status?.code === "0") {
-          setPopularBooks(res.data.books || []);
+          const books = res.data.books || [];
+          console.log("📚 API'den gelen kitaplar:", books);
+          books.forEach((book, index) => {
+            console.log(`📖 Kitap ${index + 1}:`, {
+              title: book.title,
+              image_url: book.image_url,
+              image: book.image,
+              cover_image: book.cover_image,
+              image_base64: book.image_base64 ? `Base64 var (${book.image_base64.substring(0, 50)}...)` : 'Base64 yok'
+            });
+          });
+          setPopularBooks(books);
         }
       })
       .catch(err => {
@@ -29,6 +41,84 @@ const Explore = () => {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Kitap kapağı için akıllı resim seçimi
+  const getBookImage = (book) => {
+    // Önce base64 resim var mı kontrol et
+    if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
+      console.log(`📸 Base64 resim kullanılıyor: ${book.title}`);
+      return book.image_base64;
+    }
+    
+    // API'den gelen normal URL resim varsa onu kullan
+    if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
+      console.log(`🌐 URL resim kullanılıyor: ${book.title} - ${book.image_url}`);
+      return book.image_url;
+    }
+    if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
+      console.log(`🖼️ Image field kullanılıyor: ${book.title} - ${book.image}`);
+      return book.image;
+    }
+    if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
+      console.log(`📚 Cover image kullanılıyor: ${book.title} - ${book.cover_image}`);
+      return book.cover_image;
+    }
+    
+    // Gerçek resim yoksa placeholder kullan
+    console.log(`🎨 Özel tasarım kullanılacak: ${book.title}`);
+    return "/images/book-placeholder.png";
+  };
+
+  // Kitap kapağı elementi oluştur (resim yoksa güzel bir kart tasarımı)
+  const renderBookCover = (book, className) => {
+    const imageUrl = getBookImage(book);
+    const hasRealImage = imageUrl !== "/images/book-placeholder.png";
+
+    return (
+      <div className="relative w-full h-64 rounded-md mb-4">
+        {/* Gerçek resim */}
+        <img
+          src={imageUrl}
+          alt={book.title || "Book"}
+          className={`${className} ${hasRealImage ? 'block' : 'hidden'}`}
+          onError={(e) => {
+            // Gerçek resim yüklenemezse özel tasarım göster
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+        
+        {/* Özel kitap kapağı tasarımı (fallback) */}
+        <div 
+          className={`${className} ${hasRealImage ? 'hidden' : 'flex'} bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex-col justify-between p-4 text-white relative overflow-hidden`}
+          style={{ display: hasRealImage ? 'none' : 'flex' }}
+        >
+          {/* Arka plan deseni */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-2 left-2 w-8 h-8 border-2 border-white/30 rounded"></div>
+            <div className="absolute bottom-2 right-2 w-6 h-6 border border-white/30 rounded-full"></div>
+          </div>
+          
+          {/* Kitap başlığı */}
+          <div className="relative z-10">
+            <h3 className="text-sm font-bold leading-tight mb-2 line-clamp-3">
+              {book.title || "Unknown Title"}
+            </h3>
+          </div>
+          
+          {/* Yazar adı */}
+          <div className="relative z-10 mt-auto">
+            <p className="text-xs opacity-80 font-medium">
+              {book.author || "Unknown Author"}
+            </p>
+          </div>
+          
+          {/* Dekoratif çizgi */}
+          <div className="absolute bottom-8 left-4 right-4 h-px bg-white/30"></div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div
@@ -67,14 +157,7 @@ const Explore = () => {
                     to={`/book/${book._id}`}
                     className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
                   >
-                    <img
-                      src={book.image_url || book.image || "/images/book-placeholder.png"}
-                      alt={book.title || "Book"}
-                      className="w-full h-64 object-cover rounded-md mb-4"
-                      onError={(e) => {
-                        e.target.src = "/images/book-placeholder.png";
-                      }}
-                    />
+                    {renderBookCover(book, "w-full h-64 object-cover")}
                     <h3 className="text-lg font-semibold">{book.title || "Unknown Title"}</h3>
                     <p className="text-sm text-white/70">by {book.author || "Unknown Author"}</p>
                     {book.rating && (
