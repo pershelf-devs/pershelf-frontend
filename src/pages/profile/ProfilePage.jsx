@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
+import axios from "axios";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("Books");
@@ -8,19 +9,40 @@ const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [userReviews, setUserReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   const favoriteBooks = ["1984", "The Book Thief", "Sapiens"];
   const bookList = ["1984", "The Book Thief", "Sapiens"];
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await api.post("/users/get/id", currentUser?.id);
-      if (response?.data?.status?.code === "0") {
-        setUser(response?.data?.users?.[0]);
+      try {
+        const response = await api.post("/users/get/id", currentUser?.id);
+        if (response?.data?.status?.code === "0") {
+          setUser(response?.data?.users?.[0]);
+        }
+      } catch (error) {
+        console.error("Kullanıcı bilgileri alınırken hata oluştu:", error);
+      }
+    };
+
+    const fetchReviews = async () => {
+      setReviewsLoading(true);
+      try {
+        const response = await api.post(`/reviews/get/by-user`, currentUser?.id);
+        if (response?.data?.status?.code === "0") {
+          setUserReviews(response.data.reviews || []);
+        }
+      } catch (err) {
+        setUserReviews([]);
+      } finally {
+        setReviewsLoading(false);
       }
     };
 
     fetchUser();
+    fetchReviews();
   }, []);
 
   const handleImageSelect = (e) => {
@@ -101,7 +123,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16 bg-cover bg-center"
-    style={{ backgroundImage: "url('/images/profile-bg.png')" }}>
+    style={{ backgroundImage: "url('/images/profile-settings-bg.png')" }}>
       <div className="max-w-5xl mx-auto p-6">
 
         {/* Kullanıcı Bilgisi */}
@@ -249,6 +271,37 @@ const ProfilePage = () => {
             <div className="h-36 border-2 border-dashed border-white rounded-md flex items-center justify-center text-2xl">
               +
             </div>
+          </div>
+        )}
+
+        {/* Yorumlar */}
+        {activeTab === "Reviews" && (
+          <div className="mt-4">
+            {reviewsLoading ? (
+              <p className="text-center text-gray-400">Yorumlar yükleniyor...</p>
+            ) : userReviews.length === 0 ? (
+              <p className="text-center text-gray-400">Henüz yorumunuz yok.</p>
+            ) : (
+              <div className="space-y-4">
+                {userReviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="p-4 bg-[#3b2316] rounded-md shadow-md"
+                  >
+                    <h4 className="text-md font-semibold">{review.bookTitle}</h4>
+                    <p className="text-sm text-gray-300 mt-1">{review.content}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs bg-[#a65b38] text-white rounded-full px-3 py-1">
+                        {review.rating} / 5
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(review.createdAt).toLocaleDateString("tr-TR")}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
