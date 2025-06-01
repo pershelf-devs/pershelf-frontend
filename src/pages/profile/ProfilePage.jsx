@@ -121,6 +121,8 @@ const ProfilePage = () => {
     }
   };
 
+  console.log("Review Data:", userReviews);
+
   return (
     <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16 bg-cover bg-center"
     style={{ backgroundImage: "url('/images/profile-settings-bg.png')" }}>
@@ -288,14 +290,20 @@ const ProfilePage = () => {
                     key={review.id}
                     className="p-4 bg-[#3b2316] rounded-md shadow-md"
                   >
-                    <h4 className="text-md font-semibold">{review.bookTitle}</h4>
-                    <p className="text-sm text-gray-300 mt-1">{review.content}</p>
+                    <h4 className="text-md font-semibold">
+                      {review.review_title || "Kitap Başlığı Yok"}
+                    </h4>
+                    <p className="text-sm text-gray-300 mt-1">
+                      {review.review_text || "Yorum Yok"}
+                    </p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-xs bg-[#a65b38] text-white rounded-full px-3 py-1">
                         {review.rating} / 5
                       </span>
                       <span className="text-xs text-gray-400">
-                        {new Date(review.createdAt).toLocaleDateString("tr-TR")}
+                        {review.created_at
+                          ? new Date(review.created_at).toLocaleDateString("tr-TR")
+                          : "Tarih Yok"}
                       </span>
                     </div>
                   </div>
