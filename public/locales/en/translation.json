@@ -3,6 +3,9 @@
   "home": "Home",
   "explore": "Explore",
   "myLists": "My Lists",
+  "minutes_ago": "minutes ago",
+  "hours_ago": "hours ago",
+  "days_ago": "days ago",
   "community": "Community",
   "signIn": "Sign In"
 }

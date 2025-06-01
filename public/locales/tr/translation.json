@@ -3,6 +3,9 @@
   "home": "Ana Sayfa",
   "explore": "Keşfet",
   "myLists": "Listelerim",
+  "minutes_ago": "dakika önce",
+  "hours_ago": "saat önce",
+  "days_ago": "gün önce",
   "community": "Topluluk",
   "signIn": "Giriş Yap"
 }

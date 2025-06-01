@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from './locales/en/translation.json'; // ✅ artık src içinden import ediyoruz
-import tr from './locales/tr/translation.json'; // ✅ varsa Türkçe çeviri de ekle
+import en from '../public/locales/en/translation.json';
+import tr from '../public/locales/tr/translation.json';
 
 i18n
   .use(initReactI18next)

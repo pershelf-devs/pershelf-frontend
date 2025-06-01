@@ -4,6 +4,70 @@ import axios from "axios";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
+
+// ReviewCard bileşeni
+const ReviewCard = ({ review }) => {
+  const { t } = useTranslation(); 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInMins = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    const months = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+
+    if (diffInMins < 60) {
+      return `${diffInMins} ` + t('minutes_ago');
+    } else if (diffInHours < 24) {
+      return `${diffInHours} ` + t('hours_ago');
+    } else if (diffInDays < 7) {
+      return `${diffInDays} ` + t('days_ago');
+    } else {
+      return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+  };
+
+  return (
+    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          {review.user_image_base64 ? (
+            <img 
+              src={review.user_image_base64} 
+              alt={review.username} 
+              className="w-10 h-10 rounded-full object-cover border border-white/20"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+              <span className="text-lg">👤</span>
+            </div>
+          )}
+          <div>
+            <h4 className="font-semibold">{review.username}</h4>
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-400">
+                {"★".repeat(Math.floor(review.rating))}
+                {"☆".repeat(5 - Math.floor(review.rating))}
+              </span>
+              <span className="text-white/60 text-sm">
+                {formatDate(review.created_at)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <h5 className="font-medium text-lg mb-2">{review.review_title}</h5>
+      <p className="text-white/90 leading-relaxed">{review.review_text}</p>
+    </div>
+  );
+};
 
 const BookDetail = () => {
   const [searchParams] = useSearchParams();
@@ -12,6 +76,8 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   // Review Form States (modal yerine inline)
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -32,6 +98,7 @@ const BookDetail = () => {
 
     // Tüm ID türleri için core backend'i kullan
     fetchFromCoreBackend(id);
+    fetchReviews(id);
   }, [id]);
 
   const fetchFromCoreBackend = useCallback((id) => {
@@ -77,6 +144,20 @@ const BookDetail = () => {
         setLoading(false);
       });
   }, []);
+
+  const fetchReviews = async (bookId) => {
+    try {
+      const response = await api.post("/reviews/get/book-reviews", parseInt(bookId));
+      
+      if (response?.data?.status?.code === "0") {
+        setReviews(response.data.reviews || []);
+      }
+    } catch (error) {
+      console.error("Yorumlar yüklenirken hata oluştu:", error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
   const getBookImage = useCallback((book) => {
@@ -153,7 +234,6 @@ const BookDetail = () => {
   // Review submission handler
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    console.log(reviewData);
     setReviewLoading(true);
     setReviewError(null);
 
@@ -166,23 +246,24 @@ const BookDetail = () => {
         review_text: reviewData.content
       });
 
-      // Backend'e review gönder
       const response = await api.post("/reviews/create/book-review", reviewPayload);
-      console.log(response?.data);
-      // Başarılı submission sonrası form'u kapat ve temizle
-      setShowReviewForm(false);
-      setReviewData({
-        rating: 5,
-        title: '',
-        content: ''
-      });
-
-      // Success message göster
-      //toast.
-
+      if (response?.data?.status?.code === "0") {
+        toast.success("Yorumunuz başarıyla eklendi!");
+        // Yorumları yeniden yükle
+        fetchReviews(book.id);
+        // Form'u kapat ve temizle
+        setShowReviewForm(false);
+        setReviewData({
+          rating: 5,
+          title: '',
+          content: ''
+        });
+      } else {
+        throw new Error(response?.data?.status?.message || "Yorum eklenirken bir hata oluştu");
+      }
     } catch (err) {
-      console.log(err);
-      setReviewError(err.response?.data?.message || "Failed to submit review. Please try again.");
+      console.error(err);
+      setReviewError(err.response?.data?.message || "Yorum eklenirken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setReviewLoading(false);
     }
@@ -447,6 +528,28 @@ const BookDetail = () => {
                 </div>
               </div>
             )}
+
+            {/* Reviews Section */}
+            <div className="mt-12">
+              <h3 className="text-2xl font-bold mb-6">Reviews</h3>
+              
+              {reviewsLoading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-white/70">Yorumlar yükleniyor...</p>
+                </div>
+              ) : reviews.length > 0 ? (
+                <div className="space-y-6">
+                  {reviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-white/5 rounded-xl">
+                  <p className="text-white/70">Henüz yorum yapılmamış. İlk yorumu siz yapın!</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
