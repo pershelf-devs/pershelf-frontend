@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { api } from "../../api/api";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const BookDetail = () => {
   const [searchParams] = useSearchParams();
@@ -8,7 +11,8 @@ const BookDetail = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const { currentUser } = useSelector((state) => state.user);
+
   // Review Form States (modal yerine inline)
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewData, setReviewData] = useState({
@@ -32,7 +36,7 @@ const BookDetail = () => {
 
   const fetchFromCoreBackend = useCallback((id) => {
     setLoading(true);
-    
+
     axios
       .post("/api/books/get/id", parseInt(id), {
         headers: {
@@ -41,25 +45,25 @@ const BookDetail = () => {
       })
       .then((res) => {
         const data = res.data;
-  
+
         if (typeof data === "string" && data.startsWith("<!DOCTYPE html")) {
           throw new Error("Expected JSON response, but received HTML");
         }
-  
+
         // Backend spesifik hata kontrolü
         if (data.status?.code === "3") {
           setError(data.values?.[0] || "Book not found.");
           return;
         }
-  
+
         let bookData = null;
-  
+
         if (data.status?.code === "0" && Array.isArray(data.books) && data.books.length > 0) {
           bookData = data.books[0];
         } else if (!("status" in data)) {
           bookData = data;
         }
-  
+
         if (bookData) {
           setBook(bookData);
         } else {
@@ -80,7 +84,7 @@ const BookDetail = () => {
     if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
       return book.image_base64;
     }
-    
+
     // API'den gelen normal URL resim varsa onu kullan
     if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
       return book.image_url;
@@ -91,7 +95,7 @@ const BookDetail = () => {
     if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
       return book.image;
     }
-    
+
     // Gerçek resim yoksa placeholder kullan
     return "/images/book-placeholder.png";
   }, []);
@@ -114,9 +118,9 @@ const BookDetail = () => {
             e.target.nextSibling.style.display = 'flex';
           }}
         />
-        
+
         {/* Özel kitap kapağı tasarımı (fallback) */}
-        <div 
+        <div
           className={`w-full h-full ${hasRealImage ? 'hidden' : 'flex'} bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex-col justify-between p-6 text-white relative overflow-hidden`}
           style={{ display: hasRealImage ? 'none' : 'flex' }}
         >
@@ -126,14 +130,14 @@ const BookDetail = () => {
             <div className="absolute bottom-3 right-3 w-6 h-6 border border-white/30 rounded-full"></div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-white/20 rounded-full"></div>
           </div>
-          
+
           {/* Kitap başlığı */}
           <div className="relative z-10 flex-1 flex items-center justify-center">
             <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
               {book.title || "Unknown Title"}
             </h3>
           </div>
-          
+
           {/* Yazar adı */}
           <div className="relative z-10 mt-auto">
             <div className="h-px bg-white/30 mb-3"></div>
@@ -149,27 +153,22 @@ const BookDetail = () => {
   // Review submission handler
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+    console.log(reviewData);
     setReviewLoading(true);
     setReviewError(null);
 
     try {
-      const reviewPayload = {
-        bookId: book._id || book.id,
+      const reviewPayload = JSON.stringify({
+        book_id: book.id,
+        user_id: currentUser?.id,
         rating: reviewData.rating,
-        title: reviewData.title,
-        content: reviewData.content,
-        bookTitle: book.title,
-        bookAuthor: book.author
-      };
+        review_title: reviewData.title,
+        review_text: reviewData.content
+      });
 
       // Backend'e review gönder
-      const response = await axios.post("/api/reviews/create", reviewPayload, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
-      });
-      
+      const response = await api.post("/reviews/create/book-review", reviewPayload);
+      console.log(response?.data);
       // Başarılı submission sonrası form'u kapat ve temizle
       setShowReviewForm(false);
       setReviewData({
@@ -177,11 +176,12 @@ const BookDetail = () => {
         title: '',
         content: ''
       });
-      
+
       // Success message göster
-      alert("Review submitted successfully!");
-      
+      //toast.
+
     } catch (err) {
+      console.log(err);
       setReviewError(err.response?.data?.message || "Failed to submit review. Please try again.");
     } finally {
       setReviewLoading(false);
@@ -227,14 +227,14 @@ const BookDetail = () => {
             {error || "The book you're looking for doesn't exist."}
           </p>
           <div className="flex gap-3 justify-center">
-            <button 
+            <button
               onClick={() => window.history.back()}
               className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition"
             >
               ← Go Back
             </button>
             {error?.includes("will be available soon") && (
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-lg transition"
               >
@@ -339,7 +339,7 @@ const BookDetail = () => {
               <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition cursor-pointer">
                 ➕ Add to Reading List
               </button>
-              <button 
+              <button
                 onClick={toggleReviewForm}
                 className="bg-green-500/20 hover:bg-green-500/30 px-4 py-2 rounded-full transition cursor-pointer"
               >
@@ -353,7 +353,7 @@ const BookDetail = () => {
                 {/* Form Header */}
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-bold text-white">Write Review</h3>
-                  <button 
+                  <button
                     onClick={toggleReviewForm}
                     className="text-white/60 hover:text-white text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition"
                   >
@@ -361,93 +361,90 @@ const BookDetail = () => {
                   </button>
                 </div>
 
-                {/* Review Form */}
-                <form onSubmit={handleReviewSubmit} className="space-y-6">
-                  {/* Rating */}
-                  <div>
-                    <label className="block text-white font-medium mb-3">Rating</label>
-                    <div className="flex items-center gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setReviewData(prev => ({ ...prev, rating: star }));
-                          }}
-                          className={`text-3xl transition-colors ${
-                            star <= reviewData.rating 
-                              ? 'text-yellow-400 hover:text-yellow-300' 
-                              : 'text-white/30 hover:text-white/50'
+                {/* Rating */}
+                <div>
+                  <label className="block text-white font-medium mb-3">Rating</label>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setReviewData(prev => ({ ...prev, rating: star }));
+                        }}
+                        className={`text-3xl transition-colors ${star <= reviewData.rating
+                            ? 'text-yellow-400 hover:text-yellow-300'
+                            : 'text-white/30 hover:text-white/50'
                           }`}
-                        >
-                          ★
-                        </button>
-                      ))}
-                      <span className="ml-3 text-white/80">({reviewData.rating}/5)</span>
-                    </div>
+                      >
+                        ★
+                      </button>
+                    ))}
+                    <span className="ml-3 text-white/80">({reviewData.rating}/5)</span>
                   </div>
+                </div>
 
-                  {/* Review Title */}
-                  <div>
-                    <label className="block text-white font-medium mb-2">Review Title</label>
-                    <input
-                      type="text"
-                      value={reviewData.title}
-                      onChange={(e) => setReviewData(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Give your review a title..."
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition"
-                      required
-                    />
+                {/* Review Title */}
+                <div>
+                  <label className="block text-white font-medium mb-2">Review Title</label>
+                  <input
+                    type="text"
+                    value={reviewData.title}
+                    onChange={(e) => setReviewData(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Give your review a title..."
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition"
+                    required
+                  />
+                </div>
+
+                {/* Review Content */}
+                <div>
+                  <label className="block text-white font-medium mb-2">Your Review</label>
+                  <textarea
+                    value={reviewData.content}
+                    onChange={(e) => setReviewData(prev => ({ ...prev, content: e.target.value }))}
+                    placeholder="Share your thoughts about this book..."
+                    rows="4"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition resize-none"
+                    required
+                  />
+                </div>
+
+                {/* Error Message */}
+                {reviewError && (
+                  <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
+                    {reviewError}
                   </div>
+                )}
 
-                  {/* Review Content */}
-                  <div>
-                    <label className="block text-white font-medium mb-2">Your Review</label>
-                    <textarea
-                      value={reviewData.content}
-                      onChange={(e) => setReviewData(prev => ({ ...prev, content: e.target.value }))}
-                      placeholder="Share your thoughts about this book..."
-                      rows="4"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition resize-none"
-                      required
-                    />
-                  </div>
-
-                  {/* Error Message */}
-                  {reviewError && (
-                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
-                      {reviewError}
-                    </div>
-                  )}
-
-                  {/* Submit Buttons */}
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={toggleReviewForm}
-                      className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={reviewLoading}
-                      className="flex-1 px-6 py-3 bg-green-600/80 hover:bg-green-600 disabled:bg-green-600/40 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
-                    >
-                      {reviewLoading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          ✍️ Submit Review
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                {/* Submit Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={toggleReviewForm}
+                    className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={reviewLoading}
+                    onClick={handleReviewSubmit}
+                    className="flex-1 px-6 py-3 bg-green-600/80 hover:bg-green-600 disabled:bg-green-600/40 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
+                  >
+                    {reviewLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        ✍️ Submit Review
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
           </div>
