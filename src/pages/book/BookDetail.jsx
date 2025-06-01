@@ -283,6 +283,37 @@ const BookDetail = () => {
     }
   };
 
+  // Like handler
+  const handleLike = async () => {
+    if (!currentUser) {
+      toast.info("Lütfen beğenmek için giriş yapın.");
+      return;
+    }
+    if (!book) return;
+
+    try {
+      const response = await fetch('/api/shelves/like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: currentUser.id || currentUser._id,
+          book_id: book.id || book._id
+        })
+      });
+      const data = await response.json();
+      if (data.code === "0") {
+        toast.success("Kitap beğenilere eklendi!");
+        // İsteğe bağlı: Beğeni state'i güncellenebilir
+      } else {
+        toast.error("Hata: " + (data.values ? data.values.join(', ') : 'Bilinmeyen hata'));
+      }
+    } catch (err) {
+      toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#2a1a0f] text-white flex items-center justify-center">
@@ -414,7 +445,10 @@ const BookDetail = () => {
 
             {/* Butonlar */}
             <div className="flex gap-4 mt-6">
-              <button className="bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-full transition cursor-pointer">
+              <button
+                className="bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-full transition cursor-pointer"
+                onClick={handleLike}
+              >
                 ❤️ Like
               </button>
               <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition cursor-pointer">
