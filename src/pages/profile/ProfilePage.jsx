@@ -100,7 +100,8 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16">
+    <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16 bg-cover bg-center"
+    style={{ backgroundImage: "url('/images/profile-bg.png')" }}>
       <div className="max-w-5xl mx-auto p-6">
 
         {/* Kullanıcı Bilgisi */}

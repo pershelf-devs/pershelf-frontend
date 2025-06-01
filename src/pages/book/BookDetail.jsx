@@ -333,15 +333,15 @@ const BookDetail = () => {
 
             {/* Butonlar */}
             <div className="flex gap-4 mt-6">
-              <button className="bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-full transition">
+              <button className="bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-full transition cursor-pointer">
                 ❤️ Like
               </button>
-              <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition">
+              <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition cursor-pointer">
                 ➕ Add to Reading List
               </button>
               <button 
                 onClick={toggleReviewForm}
-                className="bg-green-500/20 hover:bg-green-500/30 px-4 py-2 rounded-full transition"
+                className="bg-green-500/20 hover:bg-green-500/30 px-4 py-2 rounded-full transition cursor-pointer"
               >
                 ✍️ Write Review
               </button>
