@@ -1,85 +1,34 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/user/userSlice";
+import { toast } from "react-toastify";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
-  const [userInfo, setUserInfo] = useState(null);
+  const { currentUser } = useSelector((state) => state.user);
+  const { access_token } = useSelector((state) => state.user);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const dispatch = useDispatch();
   const menuRef = useRef(null);
-
-  // Kullanıcı bilgilerini yükle
-  const loadUserInfo = () => {
-    const token = localStorage.getItem("token");
-    const userInfoStr = localStorage.getItem("userInfo");
-    
-    if (token && userInfoStr) {
-      try {
-        const userInfo = JSON.parse(userInfoStr);
-        setUserInfo(userInfo);
-        setIsLoggedIn(true);
-      } catch (error) {
-        console.error("Error parsing user info:", error);
-        setIsLoggedIn(false);
-        setUserInfo(null);
-      }
-    } else {
-      setIsLoggedIn(false);
-      setUserInfo(null);
-    }
-  };
-
-  useEffect(() => {
-    // İlk yüklemede kullanıcı bilgilerini yükle
-    loadUserInfo();
-
-    // Storage değişikliklerini dinle
-    const handleStorageChange = () => {
-      loadUserInfo();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
 
   const handleChangeLanguage = (language) => {
     i18n.changeLanguage(language);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
-    setIsLoggedIn(false);
-    setUserInfo(null);
-    navigate("/");
-  };
-
-  // Kullanıcı adını belirle (önce name, sonra username, sonra email)
-  const getUserDisplayName = () => {
-    if (!userInfo) return "";
-    
-    if (userInfo.name && userInfo.surname) {
-      return `${userInfo.name} ${userInfo.surname}`;
-    } else if (userInfo.name) {
-      return userInfo.name;
-    } else if (userInfo.username) {
-      return userInfo.username;
-    } else if (userInfo.email) {
-      return userInfo.email;
-    }
-    return "User";
+    dispatch(logout());
+    toast.success("Logged out successfully");
   };
 
   return (
     <header className="fixed top-0 left-0 w-full bg-black/20 backdrop-blur-md text-white shadow-lg z-50 border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link 
-          to={isLoggedIn ? "/dashboard" : "/"} 
+          to={currentUser ? "/dashboard" : "/"} 
           className="text-2xl font-bold text-white"
         >
           Pershelf
@@ -87,7 +36,7 @@ const Header = () => {
 
         <nav className="hidden md:flex space-x-8">
           <Link 
-            to={isLoggedIn ? "/dashboard" : "/"} 
+            to={currentUser ? "/dashboard" : "/"} 
             className="hover:text-gray-300 transition"
           >
             {t("home")}
@@ -120,13 +69,13 @@ const Header = () => {
             </button>
           </div>
 
-          {isLoggedIn ? (
+          {currentUser ? (
             <div className="relative">
               <button 
                 onClick={() => setIsMenuOpen(prev => !prev)}
                 className="bg-white/90 text-[#2a1a0f] px-4 py-2 rounded-md hover:bg-white text-sm font-semibold transition"
               > 
-                👤 {getUserDisplayName()}
+                👤 {currentUser?.username}
               </button>
 
               {isMenuOpen && (

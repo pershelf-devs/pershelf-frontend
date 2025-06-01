@@ -4,11 +4,14 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from "react-redux";
+import { setAccessToken, setCurrentUser } from "../../redux/user/userSlice";
 
 
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [userInfo, setUserInfo] = useState({
     email: "",
@@ -35,21 +38,13 @@ const Login = () => {
       const userInfo = data?.data?.userInfo;
       
       if (token && userInfo) {
-        // Token'ı kaydet
-        localStorage.setItem("token", token);
-        
-        // Kullanıcı bilgilerini kaydet
-        localStorage.setItem("userInfo", JSON.stringify({
-          id: userInfo.id,
-          username: userInfo.username,
-          email: userInfo.email,
-          name: userInfo.name,
-          surname: userInfo.surname
-        }));
-        
-        window.dispatchEvent(new Event("storage"));
+        dispatch(setAccessToken(token));
+        dispatch(setCurrentUser(userInfo));
+
         toast.success("Login successful!");
-        navigate("/dashboard");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
       } else {
         toast.warn("Login succeeded but token or user info missing.");
       }

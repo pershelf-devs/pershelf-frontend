@@ -1,19 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { api } from "../../api/api";
+import { useSelector } from "react-redux";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("Books");
-
-  const user = {
-    username: "Mevlutcan",
-    followers: 0,
-    following: 0,
-  };
+  const { currentUser } = useSelector((state) => state.user);
+  const [user, setUser] = useState(null);
 
   const favoriteBooks = ["1984", "The Book Thief", "Sapiens"];
   const bookList = ["1984", "The Book Thief", "Sapiens"];
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      //const response = await api.post("/api/users/get/id", );
+      //console.log(response?.data);
+      console.log(currentUser);
+    };
+
+    fetchUser();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2]">
+    <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16">
       <div className="max-w-5xl mx-auto p-6">
 
         {/* Kullanıcı Bilgisi */}
@@ -22,9 +30,9 @@ const ProfilePage = () => {
             👤
           </div>
           <div>
-            <h2 className="text-2xl font-bold">@{user.username}</h2>
+            <h2 className="text-2xl font-bold">@{user?.username}</h2>
             <p className="text-sm text-[#e5ded5]">
-              Following {user.following} · Followers {user.followers}
+              Following {user?.following} · Followers {user?.followers}
             </p>
           </div>
         </div>

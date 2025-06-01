@@ -34,12 +34,6 @@ export default defineConfig({
         },
       },
     },
-    /*
-    https: {
-      key: fs.readFileSync(configData.server.serverKey),
-      cert: fs.readFileSync(configData.server.serverCrt),
-    },
-    */
     strictPort: true,
   },
 })
