@@ -27,7 +27,7 @@ const Header = () => {
 
   const handleSearch = (query) => {
     console.log("Aranan kitap:", query);
-    // DEĞİŞECEK BURASI
+    // Explore sayfasına query parametresiyle git
     navigate(`/explore?query=${encodeURIComponent(query)}`);
   };
 

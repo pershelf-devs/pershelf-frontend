@@ -8,6 +8,16 @@ const BookDetail = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Review Form States (modal yerine inline)
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewData, setReviewData] = useState({
+    rating: 5,
+    title: '',
+    content: ''
+  });
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
 
   useEffect(() => {
     if (!id) {
@@ -22,7 +32,7 @@ const BookDetail = () => {
 
   const fetchFromCoreBackend = useCallback((id) => {
     setLoading(true);
-  
+    
     axios
       .post("/api/books/get/id", parseInt(id), {
         headers: {
@@ -36,7 +46,7 @@ const BookDetail = () => {
           throw new Error("Expected JSON response, but received HTML");
         }
   
-        // 💡 Backend spesifik hata kontrolü
+        // Backend spesifik hata kontrolü
         if (data.status?.code === "3") {
           setError(data.values?.[0] || "Book not found.");
           return;
@@ -51,14 +61,12 @@ const BookDetail = () => {
         }
   
         if (bookData) {
-          console.log("📖 Setting Book:", bookData);
           setBook(bookData);
         } else {
           setError("Book not found or backend is returning invalid format.");
         }
       })
       .catch((err) => {
-        console.error("💥 Core Backend Error:", err);
         setError("Book not found or backend is returning invalid format.");
       })
       .finally(() => {
@@ -137,6 +145,62 @@ const BookDetail = () => {
       </div>
     );
   }, [getBookImage]);
+
+  // Review submission handler
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewLoading(true);
+    setReviewError(null);
+
+    try {
+      const reviewPayload = {
+        bookId: book._id || book.id,
+        rating: reviewData.rating,
+        title: reviewData.title,
+        content: reviewData.content,
+        bookTitle: book.title,
+        bookAuthor: book.author
+      };
+
+      // Backend'e review gönder
+      const response = await axios.post("/api/reviews/create", reviewPayload, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+      });
+      
+      // Başarılı submission sonrası form'u kapat ve temizle
+      setShowReviewForm(false);
+      setReviewData({
+        rating: 5,
+        title: '',
+        content: ''
+      });
+      
+      // Success message göster
+      alert("Review submitted successfully!");
+      
+    } catch (err) {
+      setReviewError(err.response?.data?.message || "Failed to submit review. Please try again.");
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  // Review form'unu aç/kapat
+  const toggleReviewForm = () => {
+    setShowReviewForm(!showReviewForm);
+    setReviewError(null);
+    if (!showReviewForm) {
+      // Form açılırken temizle
+      setReviewData({
+        rating: 5,
+        title: '',
+        content: ''
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -275,10 +339,117 @@ const BookDetail = () => {
               <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition">
                 ➕ Add to Reading List
               </button>
-              <button className="bg-green-500/20 hover:bg-green-500/30 px-4 py-2 rounded-full transition">
+              <button 
+                onClick={toggleReviewForm}
+                className="bg-green-500/20 hover:bg-green-500/30 px-4 py-2 rounded-full transition"
+              >
                 ✍️ Write Review
               </button>
             </div>
+
+            {/* Inline Review Form */}
+            {showReviewForm && (
+              <div className="mt-8 p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
+                {/* Form Header */}
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-white">Write Review</h3>
+                  <button 
+                    onClick={toggleReviewForm}
+                    className="text-white/60 hover:text-white text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Review Form */}
+                <form onSubmit={handleReviewSubmit} className="space-y-6">
+                  {/* Rating */}
+                  <div>
+                    <label className="block text-white font-medium mb-3">Rating</label>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setReviewData(prev => ({ ...prev, rating: star }));
+                          }}
+                          className={`text-3xl transition-colors ${
+                            star <= reviewData.rating 
+                              ? 'text-yellow-400 hover:text-yellow-300' 
+                              : 'text-white/30 hover:text-white/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                      <span className="ml-3 text-white/80">({reviewData.rating}/5)</span>
+                    </div>
+                  </div>
+
+                  {/* Review Title */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">Review Title</label>
+                    <input
+                      type="text"
+                      value={reviewData.title}
+                      onChange={(e) => setReviewData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Give your review a title..."
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition"
+                      required
+                    />
+                  </div>
+
+                  {/* Review Content */}
+                  <div>
+                    <label className="block text-white font-medium mb-2">Your Review</label>
+                    <textarea
+                      value={reviewData.content}
+                      onChange={(e) => setReviewData(prev => ({ ...prev, content: e.target.value }))}
+                      placeholder="Share your thoughts about this book..."
+                      rows="4"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition resize-none"
+                      required
+                    />
+                  </div>
+
+                  {/* Error Message */}
+                  {reviewError && (
+                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
+                      {reviewError}
+                    </div>
+                  )}
+
+                  {/* Submit Buttons */}
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={toggleReviewForm}
+                      className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={reviewLoading}
+                      className="flex-1 px-6 py-3 bg-green-600/80 hover:bg-green-600 disabled:bg-green-600/40 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
+                    >
+                      {reviewLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          ✍️ Submit Review
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </div>
