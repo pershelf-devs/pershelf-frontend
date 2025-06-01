@@ -292,24 +292,25 @@ const BookDetail = () => {
     if (!book) return;
 
     try {
-      const response = await fetch('/api/shelves/like', {
-        method: 'POST',
+      const payload = {
+        user_id: currentUser.id || currentUser._id,
+        book_id: book.id || book._id
+      };
+
+      const response = await api.post("/shelves/like", payload, {
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          user_id: currentUser.id || currentUser._id,
-          book_id: book.id || book._id
-        })
       });
-      const data = await response.json();
-      if (data.code === "0") {
+
+      if (response?.data?.code === "0") {
         toast.success("Kitap beğenilere eklendi!");
         // İsteğe bağlı: Beğeni state'i güncellenebilir
       } else {
-        toast.error("Hata: " + (data.values ? data.values.join(', ') : 'Bilinmeyen hata'));
+        toast.error("Hata: " + (response?.data?.values ? response.data.values.join(', ') : "Bilinmeyen hata"));
       }
     } catch (err) {
+      console.error(err);
       toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };

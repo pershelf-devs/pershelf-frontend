@@ -40,7 +40,7 @@ export default function ExpandableSearchBar({ onSearch }) {
       {isOpen && (
         <form
           onSubmit={handleSearch}
-          className="flex items-center bg-black rounded-full pl-3 pr-2 py-1 shadow-md w-64 transition-all"
+          assName="absolute right-0 top-0 translate-y-full mt-2 flex items-center bg-black/95 rounded-full px-4 py-2 shadow-lg w-64 md:w-80 transition-all duration-300 z-50"
         >
           <input
             type="text"

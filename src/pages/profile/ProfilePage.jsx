@@ -121,7 +121,6 @@ const ProfilePage = () => {
     }
   };
 
-  console.log("Review Data:", userReviews);
 
   return (
     <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16 bg-cover bg-center"
@@ -297,8 +296,8 @@ const ProfilePage = () => {
                       {review.review_text || "Yorum Yok"}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs bg-[#a65b38] text-white rounded-full px-3 py-1">
-                        {review.rating} / 5
+                      <span className="text-xs text-yellow-400">
+                        {"★".repeat(review.rating) + "☆".repeat(5 - review.rating)}
                       </span>
                       <span className="text-xs text-gray-400">
                         {review.created_at
