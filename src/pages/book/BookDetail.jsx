@@ -37,10 +37,10 @@ const ReviewCard = ({ review }) => {
     <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          {review.user_image_base64 ? (
+          {review?.user_image_base64 ? (
             <img 
-              src={review.user_image_base64} 
-              alt={review.username} 
+              src={review?.user_image_base64} 
+              alt={review?.username} 
               className="w-10 h-10 rounded-full object-cover border border-white/20"
             />
           ) : (
@@ -49,22 +49,22 @@ const ReviewCard = ({ review }) => {
             </div>
           )}
           <div>
-            <h4 className="font-semibold">{review.username}</h4>
+            <h4 className="font-semibold">{review?.username}</h4>
             <div className="flex items-center gap-2">
               <span className="text-yellow-400">
-                {"★".repeat(Math.floor(review.rating))}
-                {"☆".repeat(5 - Math.floor(review.rating))}
+                {"★".repeat(Math.floor(review?.rating))}
+                {"☆".repeat(5 - Math.floor(review?.rating))}
               </span>
               <span className="text-white/60 text-sm">
-                {formatDate(review.created_at)}
+                {formatDate(review?.created_at)}
               </span>
             </div>
           </div>
         </div>
       </div>
       
-      <h5 className="font-medium text-lg mb-2">{review.review_title}</h5>
-      <p className="text-white/90 leading-relaxed">{review.review_text}</p>
+      <h5 className="font-medium text-lg mb-2">{review?.review_title}</h5>
+      <p className="text-white/90 leading-relaxed">{review?.review_text}</p>
     </div>
   );
 };
@@ -247,7 +247,7 @@ const BookDetail = () => {
       });
 
       const response = await api.post("/reviews/create/book-review", reviewPayload);
-      if (response?.data?.status?.code === "0") {
+      if (response?.data?.code === "0") {
         toast.success("Yorumunuz başarıyla eklendi!");
         // Yorumları yeniden yükle
         fetchReviews(book.id);
