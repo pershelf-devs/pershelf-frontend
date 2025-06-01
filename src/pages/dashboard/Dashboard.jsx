@@ -125,18 +125,22 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14">
 
           <div className="lg:col-span-3 hidden lg:block">
-            {suggestedBook && (
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center shadow-xl">
-                <h3 className="font-bold mb-3 text-xl">📌 Pick of the Day</h3>
-                <img
-                  src={getBookImage(suggestedBook)}
-                  alt={suggestedBook.title}
-                  className="w-24 h-36 object-cover rounded mx-auto shadow-md mb-3"
-                />
-                <h4 className="font-semibold text-white">{suggestedBook.title}</h4>
-                <p className="text-sm text-white/70 italic">{suggestedBook.author}</p>
+            <div className="sticky top-24 space-y-6">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+                <div className="text-4xl mb-3">📖</div>
+                <p className="text-sm italic text-white/80">
+                  "A reader lives a thousand lives before he dies"
+                </p>
+                <p className="text-xs text-white/60 mt-2">- George R.R. Martin</p>
               </div>
-            )}
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
+                <h3 className="font-bold mb-3 text-center">Your Journey</h3>
+                <div className="space-y-3 text-center">
+                  <div className="text-2xl">🏆</div>
+                  <p className="text-xs text-white/70">Keep reading to unlock achievements!</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="lg:col-span-6 space-y-16">
@@ -168,24 +172,25 @@ const Dashboard = () => {
                   )}
               </div>
             </section>
+
+            {suggestedBook && (
+              <div className="mt-8">
+                <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center shadow-xl">
+                  <h3 className="font-bold mb-3 text-xl">📌 Pick of the Day</h3>
+                  <img
+                    src={getBookImage(suggestedBook)}
+                    alt={suggestedBook.title}
+                    className="w-24 h-36 object-cover rounded mx-auto shadow-md mb-3"
+                  />
+                  <h4 className="font-semibold text-white">{suggestedBook.title}</h4>
+                  <p className="text-sm text-white/70 italic">{suggestedBook.author}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-3 hidden lg:block">
             <div className="sticky top-24 space-y-6">
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-                <div className="text-4xl mb-3">📖</div>
-                <p className="text-sm italic text-white/80">
-                  "A reader lives a thousand lives before he dies"
-                </p>
-                <p className="text-xs text-white/60 mt-2">- George R.R. Martin</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                <h3 className="font-bold mb-3 text-center">Your Journey</h3>
-                <div className="space-y-3 text-center">
-                  <div className="text-2xl">🏆</div>
-                  <p className="text-xs text-white/70">Keep reading to unlock achievements!</p>
-                </div>
-              </div>
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
                 <div className="text-4xl mb-3">🌟</div>
                 <h3 className="font-bold mb-2">Keep Reading!</h3>
