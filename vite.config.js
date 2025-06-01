@@ -1,27 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import fs from 'fs';
-import path from 'path';
-import https from 'https';
-
-const configPath = path.resolve('/pershelf/etc/server.json');
-if (!fs.existsSync(configPath)) {
-  throw new Error(`Config file not found at ${configPath}`);
-}
-
-const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-if (!configData.serverIp || !configData.serverPort) {
-  throw new Error('Invalid server configuration.');
-}
-
-// Custom HTTPS agent with SSL/TLS configuration
-const customHttpsAgent = new https.Agent({
-  rejectUnauthorized: false,
-  checkServerIdentity: () => undefined,
-  keepAlive: false,
-  timeout: 10000,
-});
 
 // https://vite.dev/config/
 export default defineConfig({
