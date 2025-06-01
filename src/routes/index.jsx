@@ -27,7 +27,7 @@ const AppRoutes = () => {
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/social" element={<SocialPage />} />
-      <Route path="/book/:id" element={<BookDetail />} />
+      <Route path="/book/details" element={<BookDetail />} />
     </Routes>
   );
 };

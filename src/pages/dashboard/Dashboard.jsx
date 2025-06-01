@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import { apiCache } from "../../utils/apiCache";
 
 // Remove mock data for popularBooks - we'll fetch from backend
 // const popularBooks = [
@@ -34,35 +36,89 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
-  // Kitap kapağı için akıllı resim seçimi
-  const getBookImage = (book) => {
+  useEffect(() => {
+    // Kullanıcı bilgilerini localStorage'dan al
+    const userInfoStr = localStorage.getItem("userInfo");
+    if (userInfoStr) {
+      try {
+        const userInfo = JSON.parse(userInfoStr);
+        setUserInfo(userInfo);
+      } catch (error) {
+        console.error("Error parsing user info:", error);
+      }
+    }
+
+    // Global cache kontrolü
+    const cacheKey = 'most-reads-3';
+    const cachedData = apiCache.get(cacheKey);
+    
+    if (cachedData) {
+      setPopularBooks(cachedData);
+      setLoading(false);
+      setReviewsLoading(false);
+      return;
+    }
+
+    // Popular books'u backend'den çek
+    axios
+      .post("/api/books/discover/most-reads", { limit: 3 })
+      .then(res => {
+        if (res.data?.status?.code === "0") {
+          const books = res.data.books || [];
+          setPopularBooks(books);
+          
+          // Global cache'e kaydet
+          apiCache.set(cacheKey, books);
+        }
+      })
+      .catch(err => {
+        console.error("API error:", err.response?.data || err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    // TODO: Popular reviews API endpoint'i eklendiğinde bu kısım aktifleştirilecek
+    // axios
+    //   .post("/api/reviews/discover/popular", { limit: 3 })
+    //   .then(res => {
+    //     if (res.data?.status?.code === "0") {
+    //       setPopularReviews(res.data.reviews || []);
+    //     }
+    //   })
+    //   .catch(err => {
+    //     console.error("Reviews API error:", err.response?.data || err.message);
+    //   })
+    //   .finally(() => setReviewsLoading(false));
+
+    // Şimdilik reviews loading'i false yap
+    setReviewsLoading(false);
+  }, []);
+
+  // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
+  const getBookImage = useCallback((book) => {
     // Önce base64 resim var mı kontrol et
     if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
-      console.log(`📸 Dashboard Base64 resim kullanılıyor: ${book.title}`);
       return book.image_base64;
     }
     
     // API'den gelen normal URL resim varsa onu kullan
     if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
-      console.log(`🌐 Dashboard URL resim kullanılıyor: ${book.title} - ${book.image_url}`);
       return book.image_url;
     }
     if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
-      console.log(`🖼️ Dashboard Image field kullanılıyor: ${book.title} - ${book.image}`);
       return book.image;
     }
     if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
-      console.log(`📚 Dashboard Cover image kullanılıyor: ${book.title} - ${book.cover_image}`);
       return book.cover_image;
     }
     
     // Gerçek resim yoksa placeholder kullan
-    console.log(`🎨 Dashboard Özel tasarım kullanılacak: ${book.title}`);
     return "/images/book-placeholder.png";
-  };
+  }, []);
 
-  // Kitap kapağı elementi oluştur (resim yoksa güzel bir kart tasarımı)
-  const renderBookCover = (book) => {
+  // Kitap kapağı elementi oluştur - useCallback ile optimize et
+  const renderBookCover = useCallback((book) => {
     const imageUrl = getBookImage(book);
     const hasRealImage = imageUrl !== "/images/book-placeholder.png";
 
@@ -108,62 +164,7 @@ const Dashboard = () => {
         </div>
       </div>
     );
-  };
-
-  useEffect(() => {
-    // Kullanıcı bilgilerini localStorage'dan al
-    const userInfoStr = localStorage.getItem("userInfo");
-    if (userInfoStr) {
-      try {
-        const userInfo = JSON.parse(userInfoStr);
-        setUserInfo(userInfo);
-      } catch (error) {
-        console.error("Error parsing user info:", error);
-      }
-    }
-
-    // Popular books'u backend'den çek
-    axios
-      .post("/api/books/discover/most-reads", { limit: 3 })
-      .then(res => {
-        if (res.data?.status?.code === "0") {
-          const books = res.data.books || [];
-          console.log("📚 Dashboard API'den gelen kitaplar:", books);
-          books.forEach((book, index) => {
-            console.log(`📖 Dashboard Kitap ${index + 1}:`, {
-              title: book.title,
-              image_url: book.image_url,
-              image: book.image,
-              cover_image: book.cover_image,
-              image_base64: book.image_base64 ? `Base64 var (${book.image_base64.substring(0, 50)}...)` : 'Base64 yok'
-            });
-          });
-          setPopularBooks(books);
-        }
-      })
-      .catch(err => {
-        console.error("API error:", err.response?.data || err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-    // TODO: Popular reviews API endpoint'i eklendiğinde bu kısım aktifleştirilecek
-    // axios
-    //   .post("/api/reviews/discover/popular", { limit: 3 })
-    //   .then(res => {
-    //     if (res.data?.status?.code === "0") {
-    //       setPopularReviews(res.data.reviews || []);
-    //     }
-    //   })
-    //   .catch(err => {
-    //     console.error("Reviews API error:", err.response?.data || err.message);
-    //   })
-    //   .finally(() => setReviewsLoading(false));
-
-    // Şimdilik reviews loading'i false yap
-    setReviewsLoading(false);
-  }, []);
+  }, [getBookImage]);
 
   // Kullanıcı adını belirle
   const getUserDisplayName = () => {
@@ -250,11 +251,15 @@ const Dashboard = () => {
                     ))
                   : popularBooks.length > 0
                   ? popularBooks.map((book, index) => (
-                      <div key={book._id || index} className="bg-white/10 p-4 rounded-lg shadow text-center hover:bg-white/20 transition-all cursor-pointer">
+                      <Link 
+                        key={book.id || book._id || index} 
+                        to={`/book/details?id=${book.id || book._id}`}
+                        className="bg-white/10 p-4 rounded-lg shadow text-center hover:bg-white/20 transition-all cursor-pointer block"
+                      >
                         {renderBookCover(book)}
                         <h4 className="font-bold">{book.title || "Unknown Title"}</h4>
                         <p className="text-sm text-white/70">{book.author || "Unknown Author"}</p>
-                      </div>
+                      </Link>
                     ))
                   : (
                     <div className="col-span-full text-center py-12">

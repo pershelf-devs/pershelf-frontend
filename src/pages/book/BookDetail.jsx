@@ -1,81 +1,184 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 
 const BookDetail = () => {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!id) {
-      setError("No book ID provided");
+      setError("No book ID provided in URL parameters");
       setLoading(false);
       return;
     }
 
-    console.log("Fetching book details for ID:", id);
-
-    // ID türüne göre farklı backend endpoint'leri dene
-    const isNumericId = /^\d+$/.test(id);
-    
-    if (isNumericId) {
-      // Helper backend'ten kitap detayını çek (integer ID)
-      fetchFromHelperBackend(parseInt(id));
-    } else {
-      // Core backend'ten kitap detayını çek (MongoDB ObjectID)
-      fetchFromCoreBackend(id);
-    }
+    // Tüm ID türleri için core backend'i kullan
+    fetchFromCoreBackend(id);
   }, [id]);
 
-  const fetchFromHelperBackend = (numericId) => {
+  const fetchFromCoreBackend = useCallback((bookId) => {
+    setLoading(true);
+    
+    const requestUrl = `/restapi/v1.0/books/${bookId}`;
+    console.log("🚀 Starting Core Backend Request:", {
+      url: requestUrl,
+      bookId: bookId,
+      bookIdType: typeof bookId,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Core backend book detail endpoint - /restapi/v1.0 path kullan
     axios
-      .post(`/api/books/get/id/${numericId}`)
+      .get(requestUrl)
       .then(res => {
-        console.log("Helper backend book detail response:", res.data);
-        
-        if (res.data && res.data.id) {
+        console.log("✅ Core Backend Success Response:", {
+          status: res.status,
+          statusText: res.statusText,
+          headers: res.headers,
+          fullResponse: res,
+          data: res.data,
+          dataType: typeof res.data,
+          dataKeys: res.data ? Object.keys(res.data) : 'No keys',
+          dataLength: res.data ? JSON.stringify(res.data).length : 0,
+          hasStatus: res.data?.status ? true : false,
+          statusCode: res.data?.status?.code,
+          hasBook: res.data?.book ? true : false,
+          hasData: res.data?.data ? true : false,
+          timestamp: new Date().toISOString()
+        });
+
+        // Response data structure'ını detaylı incele
+        if (res.data) {
+          console.log("📊 Response Data Analysis:", {
+            topLevelKeys: Object.keys(res.data),
+            statusExists: 'status' in res.data,
+            statusValue: res.data.status,
+            bookExists: 'book' in res.data,
+            bookValue: res.data.book,
+            dataExists: 'data' in res.data,
+            dataValue: res.data.data,
+            directBookData: res.data
+          });
+        }
+
+        if (res.data?.status?.code === "0") {
+          const bookData = res.data.book || res.data.data;
+          console.log("📖 Setting Book Data:", bookData);
+          setBook(bookData);
+        } else if (res.data && !res.data.status) {
+          // Status field yoksa direkt data'yı kitap olarak kabul et
+          console.log("📖 No status field, using direct data as book:", res.data);
           setBook(res.data);
         } else {
-          setError("Book not found");
-        }
-      })
-      .catch(err => {
-        console.error("Helper backend book detail error:", err);
-        setError("Failed to load book details from helper backend");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-  const fetchFromCoreBackend = (objectId) => {
-    // Core backend book detail endpoint (gelecekte eklenecek)
-    axios
-      .post(`/api/books/detail/${objectId}`)
-      .then(res => {
-        console.log("Core backend book detail response:", res.data);
-        
-        if (res.data?.status?.code === "0") {
-          setBook(res.data.book || res.data.data);
-        } else {
+          console.log("❌ Book not found - status check failed:", {
+            hasStatus: !!res.data?.status,
+            statusCode: res.data?.status?.code,
+            responseData: res.data
+          });
           setError("Book not found in core backend");
         }
       })
       .catch(err => {
-        console.error("Core backend book detail error:", err);
+        console.error("💥 Core Backend Error Details:", {
+          message: err.message,
+          responseStatus: err.response?.status,
+          responseStatusText: err.response?.statusText,
+          responseData: err.response?.data,
+          responseHeaders: err.response?.headers,
+          requestConfig: err.config,
+          errorCode: err.code,
+          fullError: err,
+          timestamp: new Date().toISOString()
+        });
+        
         // Backend endpoint henüz yoksa daha friendly bir mesaj göster
         if (err.response?.status === 404 || err.code === 'ERR_BAD_REQUEST') {
           setError("Book details will be available soon. Backend endpoint is being developed.");
         } else {
-          setError("Failed to load book details from core backend");
+          setError("Failed to load book details from core backend. Please try again.");
         }
       })
       .finally(() => {
         setLoading(false);
+        console.log("🏁 Request completed, loading set to false");
       });
-  };
+  }, []);
+
+  // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
+  const getBookImage = useCallback((book) => {
+    // Önce base64 resim var mı kontrol et
+    if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
+      return book.image_base64;
+    }
+    
+    // API'den gelen normal URL resim varsa onu kullan
+    if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
+      return book.image_url;
+    }
+    if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
+      return book.cover_image;
+    }
+    if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
+      return book.image;
+    }
+    
+    // Gerçek resim yoksa placeholder kullan
+    return "/images/book-placeholder.png";
+  }, []);
+
+  // Kitap kapağı elementi oluştur - useCallback ile optimize et  
+  const renderBookCover = useCallback((book) => {
+    const imageUrl = getBookImage(book);
+    const hasRealImage = imageUrl !== "/images/book-placeholder.png";
+
+    return (
+      <div className="relative w-48 h-72 rounded shadow-lg overflow-hidden">
+        {/* Gerçek resim */}
+        <img
+          src={imageUrl}
+          alt={book.title || "Book"}
+          className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
+          onError={(e) => {
+            // Gerçek resim yüklenemezse özel tasarım göster
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+        
+        {/* Özel kitap kapağı tasarımı (fallback) */}
+        <div 
+          className={`w-full h-full ${hasRealImage ? 'hidden' : 'flex'} bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex-col justify-between p-6 text-white relative overflow-hidden`}
+          style={{ display: hasRealImage ? 'none' : 'flex' }}
+        >
+          {/* Arka plan deseni */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-3 left-3 w-8 h-8 border-2 border-white/30 rounded"></div>
+            <div className="absolute bottom-3 right-3 w-6 h-6 border border-white/30 rounded-full"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-white/20 rounded-full"></div>
+          </div>
+          
+          {/* Kitap başlığı */}
+          <div className="relative z-10 flex-1 flex items-center justify-center">
+            <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
+              {book.title || "Unknown Title"}
+            </h3>
+          </div>
+          
+          {/* Yazar adı */}
+          <div className="relative z-10 mt-auto">
+            <div className="h-px bg-white/30 mb-3"></div>
+            <p className="text-sm opacity-90 font-medium text-center">
+              {book.author || "Unknown Author"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }, [getBookImage]);
 
   if (loading) {
     return (
@@ -134,24 +237,14 @@ const BookDetail = () => {
       <div className="relative z-10 py-20 px-6 max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row gap-10 items-start">
           {/* Poster */}
-          <img
-            src={book.image_url || book.cover_image || book.image || "/images/book-placeholder.png"}
-            alt={book.title || "Book"}
-            className="w-48 h-72 object-cover rounded shadow-lg"
-            onError={(e) => {
-              if (e.target.src !== window.location.origin + "/images/book-placeholder.png") {
-                e.target.src = "/images/book-placeholder.png";
-              }
-            }}
-          />
+          {renderBookCover(book)}
 
           {/* Kitap Bilgileri */}
           <div className="flex-1 space-y-4">
             <h1 className="text-3xl font-bold">{book.title || "Unknown Title"}</h1>
             <p className="text-white/70 text-sm">
               by {book.author || "Unknown Author"}
-              {book.published_year && ` • ${book.published_year}`}
-              {book.year && ` • ${book.year}`}
+              {(book.published_year || book.year) && ` • ${book.published_year || book.year}`}
             </p>
 
             {/* Rating */}
@@ -162,6 +255,14 @@ const BookDetail = () => {
                   {"☆".repeat(5 - Math.floor(book.rating))}
                 </span>
                 <span className="text-white/80 text-sm">({book.rating}/5)</span>
+              </div>
+            )}
+
+            {/* Read Count */}
+            {book.reads !== undefined && (
+              <div className="flex items-center gap-2">
+                <span className="text-blue-400">📖</span>
+                <span className="text-white/80 text-sm">{book.reads.toLocaleString()} reads</span>
               </div>
             )}
 
@@ -190,6 +291,21 @@ const BookDetail = () => {
                 <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
                   {book.genre}
                 </span>
+              </div>
+            )}
+
+            {/* Publication Info */}
+            {(book.created_at || book.updated_at) && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Publication Info</h3>
+                <div className="space-y-1 text-sm text-white/70">
+                  {book.created_at && (
+                    <p>Added: {new Date(book.created_at).toLocaleDateString()}</p>
+                  )}
+                  {book.updated_at && book.updated_at !== book.created_at && (
+                    <p>Updated: {new Date(book.updated_at).toLocaleDateString()}</p>
+                  )}
+                </div>
               </div>
             )}
 

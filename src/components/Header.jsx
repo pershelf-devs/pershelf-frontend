@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/user/userSlice";
 import { toast } from "react-toastify";
+import ExpandableSearchBar from "./ExpandableSearchBar";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
@@ -24,9 +25,15 @@ const Header = () => {
     toast.success("Logged out successfully");
   };
 
+  const handleSearch = (query) => {
+    console.log("Aranan kitap:", query);
+    // DEĞİŞECEK BURASI
+    navigate(`/explore?query=${encodeURIComponent(query)}`);
+  };
+
   return (
     <header className="fixed top-0 left-0 w-full bg-black/20 backdrop-blur-md text-white shadow-lg z-50 border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between relative">
         <Link 
           to={currentUser ? "/dashboard" : "/"} 
           className="text-2xl font-bold text-white"
@@ -34,7 +41,7 @@ const Header = () => {
           Pershelf
         </Link>
 
-        <nav className="hidden md:flex space-x-8">
+        <nav className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex space-x-8">
           <Link 
             to={currentUser ? "/dashboard" : "/"} 
             className="hover:text-gray-300 transition"
@@ -49,7 +56,8 @@ const Header = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
+          <ExpandableSearchBar onSearch={handleSearch} />
           <div className="flex space-x-2">
             <button
               onClick={() => handleChangeLanguage("en")}

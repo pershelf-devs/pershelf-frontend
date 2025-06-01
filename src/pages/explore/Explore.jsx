@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { apiCache } from "../../utils/apiCache";
 
 const Explore = () => {
   const [popularBooks, setPopularBooks] = useState([]);
@@ -18,22 +19,26 @@ const Explore = () => {
   
 
   useEffect(() => {
+    const cacheKey = 'most-reads-6';
+    
+    // Önce cache'den kontrol et
+    const cachedData = apiCache.get(cacheKey);
+    if (cachedData) {
+      setPopularBooks(cachedData);
+      setLoading(false);
+      return;
+    }
+
+    // Cache'de yoksa API'den çek
     axios
       .post("/api/books/discover/most-reads", { limit: 6 })
       .then(res => {
         if (res.data?.status?.code === "0") {
           const books = res.data.books || [];
-          console.log("📚 API'den gelen kitaplar:", books);
-          books.forEach((book, index) => {
-            console.log(`📖 Kitap ${index + 1}:`, {
-              title: book.title,
-              image_url: book.image_url,
-              image: book.image,
-              cover_image: book.cover_image,
-              image_base64: book.image_base64 ? `Base64 var (${book.image_base64.substring(0, 50)}...)` : 'Base64 yok'
-            });
-          });
           setPopularBooks(books);
+          
+          // Cache'e kaydet
+          apiCache.set(cacheKey, books);
         }
       })
       .catch(err => {
@@ -42,35 +47,30 @@ const Explore = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Kitap kapağı için akıllı resim seçimi
-  const getBookImage = (book) => {
+  // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
+  const getBookImage = useCallback((book) => {
     // Önce base64 resim var mı kontrol et
     if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
-      console.log(`📸 Base64 resim kullanılıyor: ${book.title}`);
       return book.image_base64;
     }
     
     // API'den gelen normal URL resim varsa onu kullan
     if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
-      console.log(`🌐 URL resim kullanılıyor: ${book.title} - ${book.image_url}`);
       return book.image_url;
     }
     if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
-      console.log(`🖼️ Image field kullanılıyor: ${book.title} - ${book.image}`);
       return book.image;
     }
     if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
-      console.log(`📚 Cover image kullanılıyor: ${book.title} - ${book.cover_image}`);
       return book.cover_image;
     }
     
     // Gerçek resim yoksa placeholder kullan
-    console.log(`🎨 Özel tasarım kullanılacak: ${book.title}`);
     return "/images/book-placeholder.png";
-  };
+  }, []);
 
-  // Kitap kapağı elementi oluştur (resim yoksa güzel bir kart tasarımı)
-  const renderBookCover = (book) => {
+  // Kitap kapağı elementi oluştur - useCallback ile optimize et
+  const renderBookCover = useCallback((book) => {
     const imageUrl = getBookImage(book);
     const hasRealImage = imageUrl !== "/images/book-placeholder.png";
 
@@ -117,7 +117,7 @@ const Explore = () => {
         </div>
       </div>
     );
-  };
+  }, [getBookImage]);
 
   return (
     <div
@@ -152,8 +152,8 @@ const Explore = () => {
               : popularBooks.length > 0
               ? popularBooks.map((book, index) => (
                   <Link
-                    key={book._id || index}
-                    to={`/book/${book._id}`}
+                    key={book.id || book._id || index}
+                    to={`/book/details?id=${book.id || book._id}`}
                     className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
                   >
                     {renderBookCover(book)}
