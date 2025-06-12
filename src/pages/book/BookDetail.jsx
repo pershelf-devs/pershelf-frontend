@@ -282,6 +282,35 @@ const BookDetail = () => {
     }
   };
 
+  const handleFavorite = async () => {
+    if (!currentUser) {
+      toast.info("Lütfen favori eklemek için giriş yapın.");
+      return;
+    }
+    if (!book) return;
+
+    try {
+      const response = await api.post('/user-book-relations/favorite', {
+        user_id: currentUser.id || currentUser._id,
+        book_id: book.id || book._id
+      });
+
+      if (response?.data?.code === "100") {
+        setBookStatus(prev => ({
+          ...prev,
+          favorite: true
+        }));
+      } else if (response?.data?.code === "101") {
+        setBookStatus(prev => ({
+          ...prev,
+          favorite: false
+        }));
+      }
+    } catch (err) {
+      console.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
+    }
+  };
+
   useEffect(() => {
     if (!id) {
       setError("No book ID provided in URL parameters");
@@ -427,8 +456,8 @@ const BookDetail = () => {
             <div className="flex gap-4 mt-6">
               <button
                 className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 ${bookStatus?.like
-                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
-                    : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
+                  : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
                   }`}
                 onClick={handleLike}
               >
@@ -437,6 +466,22 @@ const BookDetail = () => {
                 </span>
                 {bookStatus?.like ? 'Beğenildi' : 'Beğen'}
               </button>
+              {/* Add to Favorite */}
+              <button
+                onClick={handleFavorite}
+                className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 ${bookStatus?.favorite
+                    ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                    : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20 hover:shadow-lg hover:shadow-purple-500/20'
+                  }`}
+              >
+                <span className={`text-xl transition-all duration-300 ${bookStatus?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
+                  {bookStatus?.favorite ? '⭐' : '☆'}
+                </span>
+                <span className={`group-hover:text-white/90 ${bookStatus?.favorite ? 'text-yellow-300' : ''}`}>
+                  {bookStatus?.favorite ? 'Favorilerde' : 'Favorilere Ekle'}
+                </span>
+              </button>
+              {/* Add to Reading List */}
               <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition cursor-pointer">
                 ➕ Add to Reading List
               </button>

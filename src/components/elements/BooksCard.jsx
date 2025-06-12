@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const BooksCard = ({ book, className = '' }) => {
+const BooksCard = ({ book, className = '' , size}) => {
   return (
     <Link
       key={book._id || book.id}

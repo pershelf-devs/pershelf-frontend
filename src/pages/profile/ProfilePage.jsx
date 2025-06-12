@@ -13,8 +13,8 @@ const ProfilePage = () => {
   const [userReviews, setUserReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [likedBooks, setLikedBooks] = useState([]);
+  const [favoriteBooks, setFavoriteBooks] = useState([]);
 
-  const favoriteBooks = ["1984", "The Book Thief", "Sapiens"];
   const bookList = ["1984", "The Book Thief", "Sapiens"];
 
   const handleProfileManagement = async (action, data = null) => {
@@ -48,6 +48,13 @@ const ProfilePage = () => {
         const res = await api.post('/books/get/user/liked-books', currentUser?.id || currentUser?._id);
         if (res?.data?.status?.code === "0") {
           setLikedBooks(res?.data?.books || []);
+        }
+        break;
+
+      case 'fetchFavoriteBooks':
+        const favoriteBooksResp = await api.post('/books/get/user/favorite-books', currentUser?.id || currentUser?._id);
+        if (favoriteBooksResp?.data?.status?.code === "0") {
+          setFavoriteBooks(favoriteBooksResp?.data?.books || []);
         }
         break;
 
@@ -136,6 +143,7 @@ const ProfilePage = () => {
     handleProfileManagement('fetchUser');
     handleProfileManagement('fetchReviews');
     handleProfileManagement('fetchLikedBooks');
+    handleProfileManagement('fetchFavoriteBooks');
   }, []);
 
   return (
@@ -245,12 +253,7 @@ const ProfilePage = () => {
           <h3 className="text-xl font-semibold mb-4">Favorite Books</h3>
           <div className="flex gap-4 flex-wrap">
             {favoriteBooks.map((book, index) => (
-              <div
-                key={index}
-                className="w-24 h-36 bg-white text-black rounded-md flex items-center justify-center text-center text-sm font-medium shadow"
-              >
-                {book}
-              </div>
+              <BooksCard key={index} book={book} className="min-w-64" />
             ))}
           </div>
         </div>
