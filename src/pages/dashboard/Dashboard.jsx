@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { apiCache } from "../../utils/apiCache";
+import { useSelector } from "react-redux";
 
 // Remove mock data for popularBooks - we'll fetch from backend
 // const popularBooks = [
@@ -35,6 +36,7 @@ const Dashboard = () => {
   const [popularReviews, setPopularReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewsLoading, setReviewsLoading] = useState(true);
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
     // Kullanıcı bilgilerini localStorage'dan al
@@ -168,16 +170,16 @@ const Dashboard = () => {
 
   // Kullanıcı adını belirle
   const getUserDisplayName = () => {
-    if (!userInfo) return "User";
-    
-    if (userInfo.name && userInfo.surname) {
-      return `${userInfo.name} ${userInfo.surname}`;
-    } else if (userInfo.name) {
-      return userInfo.name;
-    } else if (userInfo.username) {
-      return userInfo.username;
-    } else if (userInfo.email) {
-      return userInfo.email;
+    if (!currentUser) return "User";
+
+    if (currentUser.name && currentUser.surname) {
+      return `${currentUser.name} ${currentUser.surname}`;
+    } else if (currentUser.name) {
+      return currentUser.name;
+    } else if (currentUser.username) {
+      return currentUser.username;
+    } else if (currentUser.email) {
+      return currentUser.email;
     }
     return "User";
   };
