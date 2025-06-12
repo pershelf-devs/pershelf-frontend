@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import BooksCard from '../../components/elements/BooksCard';
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("Books");
@@ -11,138 +12,151 @@ const ProfilePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [userReviews, setUserReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [likedBooks, setLikedBooks] = useState([]);
 
   const favoriteBooks = ["1984", "The Book Thief", "Sapiens"];
   const bookList = ["1984", "The Book Thief", "Sapiens"];
 
+  const handleProfileManagement = async (action, data = null) => {
+    switch (action) {
+      case 'fetchUser':
+        try {
+          const response = await api.post("/users/get/id", currentUser?.id);
+          if (response?.data?.status?.code === "0") {
+            setUser(response?.data?.users?.[0]);
+          }
+        } catch (error) {
+          console.error("Kullanıcı bilgileri alınırken hata oluştu:", error);
+        }
+        break;
+
+      case 'fetchReviews':
+        setReviewsLoading(true);
+        try {
+          const response = await api.post(`/reviews/get/by-user`, currentUser?.id);
+          if (response?.data?.status?.code === "0") {
+            setUserReviews(response.data.reviews || []);
+          }
+        } catch (err) {
+          setUserReviews([]);
+        } finally {
+          setReviewsLoading(false);
+        }
+        break;
+
+      case 'fetchLikedBooks':
+        const res = await api.post('/books/get/user/liked-books', currentUser?.id || currentUser?._id);
+        if (res?.data?.status?.code === "0") {
+          setLikedBooks(res?.data?.books || []);
+        }
+        break;
+
+      case 'handleImageSelect':
+        const file = data;
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            alert("Resim boyutu 5MB'dan küçük olmalıdır.");
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64String = reader.result;
+            setSelectedImage(base64String);
+          };
+          reader.readAsDataURL(file);
+        }
+        break;
+
+      case 'handleSaveImage':
+        if (!selectedImage) return;
+
+        setIsSaving(true);
+        try {
+          const img = new Image();
+          img.src = selectedImage;
+          img.onload = async () => {
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 500;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height *= MAX_SIZE / width;
+                width = MAX_SIZE;
+              }
+            } else {
+              if (height > MAX_SIZE) {
+                width *= MAX_SIZE / height;
+                height = MAX_SIZE;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+            const response = await api.post("/users/update/profile-photo", {
+              user_id: currentUser?.id,
+              image_base64: optimizedBase64
+            });
+            setUser(prev => ({ ...prev, image_base64: optimizedBase64 }));
+            setSelectedImage(null);
+          };
+        } catch (error) {
+          console.error("Resim yükleme hatası:", error);
+          alert("Resim yüklenirken bir hata oluştu.");
+        } finally {
+          setIsSaving(false);
+        }
+        break;
+
+      case 'handleRemoveImage':
+        try {
+          await api.post("/users/remove/image", {
+            userId: currentUser?.id
+          });
+          setUser(prev => ({ ...prev, image_base64: null }));
+        } catch (error) {
+          console.error("Resim kaldırma hatası:", error);
+          alert("Resim kaldırılırken bir hata oluştu.");
+        }
+        break;
+
+      default:
+        break;
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await api.post("/users/get/id", currentUser?.id);
-        if (response?.data?.status?.code === "0") {
-          setUser(response?.data?.users?.[0]);
-        }
-      } catch (error) {
-        console.error("Kullanıcı bilgileri alınırken hata oluştu:", error);
-      }
-    };
-
-    const fetchReviews = async () => {
-      setReviewsLoading(true);
-      try {
-        const response = await api.post(`/reviews/get/by-user`, currentUser?.id);
-        if (response?.data?.status?.code === "0") {
-          setUserReviews(response.data.reviews || []);
-        }
-      } catch (err) {
-        setUserReviews([]);
-      } finally {
-        setReviewsLoading(false);
-      }
-    };
-
-    fetchUser();
-    fetchReviews();
+    handleProfileManagement('fetchUser');
+    handleProfileManagement('fetchReviews');
+    handleProfileManagement('fetchLikedBooks');
   }, []);
-
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert("Resim boyutu 5MB'dan küçük olmalıdır.");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setSelectedImage(base64String);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSaveImage = async () => {
-    if (!selectedImage) return;
-
-    setIsSaving(true);
-    try {
-      const img = new Image();
-      img.src = selectedImage;
-      img.onload = async () => {
-        const canvas = document.createElement('canvas');
-        const MAX_SIZE = 500;
-        let width = img.width;
-        let height = img.height;
-        
-        if (width > height) {
-          if (width > MAX_SIZE) {
-            height *= MAX_SIZE / width;
-            width = MAX_SIZE;
-          }
-        } else {
-          if (height > MAX_SIZE) {
-            width *= MAX_SIZE / height;
-            height = MAX_SIZE;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
-        
-        const response = await api.post("/users/update/profile-photo", {
-          user_id: currentUser?.id,
-          image_base64: optimizedBase64
-        });
-        setUser(prev => ({ ...prev, image_base64: optimizedBase64 }));
-        setSelectedImage(null);
-      };
-    } catch (error) {
-      console.error("Resim yükleme hatası:", error);
-      alert("Resim yüklenirken bir hata oluştu.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleRemoveImage = async () => {
-    try {
-      await api.post("/users/remove/image", {
-        userId: currentUser?.id
-      });
-      setUser(prev => ({ ...prev, image_base64: null }));
-    } catch (error) {
-      console.error("Resim kaldırma hatası:", error);
-      alert("Resim kaldırılırken bir hata oluştu.");
-    }
-  };
-
-  console.log("Review Data:", userReviews);
 
   return (
     <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16 bg-cover bg-center"
-    style={{ backgroundImage: "url('/images/profile-settings-bg.png')" }}>
+      style={{ backgroundImage: "url('/images/profile-settings-bg.png')" }}>
       <div className="max-w-5xl mx-auto p-6">
-
         {/* Kullanıcı Bilgisi */}
         <div className="flex items-center gap-6 mb-12">
           <div className="relative p-1 group">
             <div className="w-24 h-24 bg-[#3b2316] rounded-full flex items-center justify-center text-3xl overflow-hidden border-2 border-[#a65b38]">
               {selectedImage ? (
-                <img 
-                  src={selectedImage} 
-                  alt="Seçilen Profil" 
+                <img
+                  src={selectedImage}
+                  alt="Seçilen Profil"
                   className="w-full h-full object-cover object-center"
                   style={{ imageRendering: 'auto' }}
                 />
               ) : user?.image_base64 ? (
-                <img 
-                  src={user?.image_base64 || currentUser?.image_base64} 
-                  alt="Profil" 
+                <img
+                  src={user?.image_base64 || currentUser?.image_base64}
+                  alt="Profil"
                   className="w-full h-full object-cover object-center"
                   style={{ imageRendering: 'auto' }}
                 />
@@ -155,7 +169,7 @@ const ProfilePage = () => {
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               {user?.image_base64 && !selectedImage && (
                 <button
-                  onClick={handleRemoveImage}
+                  onClick={() => handleProfileManagement('handleRemoveImage')}
                   className="bg-red-500 p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
                   title="Fotoğrafı Kaldır"
                 >
@@ -165,8 +179,8 @@ const ProfilePage = () => {
                 </button>
               )}
             </div>
-            <label 
-              htmlFor="image-upload" 
+            <label
+              htmlFor="image-upload"
               className="absolute bottom-1 right-1 bg-[#a65b38] p-2 rounded-full cursor-pointer hover:bg-[#8a4d32] transition-colors shadow-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,7 +193,7 @@ const ProfilePage = () => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={handleImageSelect}
+              onChange={(e) => handleProfileManagement('handleImageSelect', e.target.files[0])}
             />
           </div>
           <div>
@@ -190,13 +204,12 @@ const ProfilePage = () => {
             {selectedImage && (
               <div className="mt-2 flex gap-2">
                 <button
-                  onClick={handleSaveImage}
+                  onClick={() => handleProfileManagement('handleSaveImage')}
                   disabled={isSaving}
-                  className={`px-3 py-1 text-sm rounded-lg flex items-center gap-1 ${
-                    isSaving
-                      ? 'bg-gray-600 cursor-not-allowed'
-                      : 'bg-[#a65b38] hover:bg-[#8a4d32]'
-                  } transition-colors`}
+                  className={`px-3 py-1 text-sm rounded-lg flex items-center gap-1 ${isSaving
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-[#a65b38] hover:bg-[#8a4d32]'
+                    } transition-colors`}
                 >
                   {isSaving ? (
                     <>
@@ -225,7 +238,7 @@ const ProfilePage = () => {
             )}
           </div>
         </div>
-        
+
 
         {/* Favori Kitaplar */}
         <div className="mb-12">
@@ -248,11 +261,10 @@ const ProfilePage = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 ${
-                activeTab === tab
-                  ? "font-bold border-b-2 border-white text-white"
-                  : "text-[#d4c0aa]"
-              }`}
+              className={`pb-2 ${activeTab === tab
+                ? "font-bold border-b-2 border-white text-white"
+                : "text-[#d4c0aa]"
+                }`}
             >
               {tab}
             </button>
@@ -267,12 +279,20 @@ const ProfilePage = () => {
                 key={index}
                 className="h-36 bg-white text-black rounded-md flex items-center justify-center text-center text-sm font-medium shadow"
               >
-                {book}
+                {book?.title}
               </div>
             ))}
             <div className="h-36 border-2 border-dashed border-white rounded-md flex items-center justify-center text-2xl">
               +
             </div>
+          </div>
+        )}
+
+        {activeTab === "Likes" && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {likedBooks.map((book, index) => (
+              <BooksCard key={index} book={book} />
+            ))}
           </div>
         )}
 
