@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { api } from "../../api/api";
@@ -6,9 +6,29 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 
-// ReviewCard bileşeni
-const ReviewCard = ({ review }) => {
-  const { t } = useTranslation(); 
+const BookDetail = () => {
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { currentUser } = useSelector((state) => state.user);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [bookStatus, setBookStatus] = useState({
+    like: false,
+    favorite: false
+  });
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewData, setReviewData] = useState({
+    rating: 5,
+    title: '',
+    content: ''
+  });
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
+  const { t } = useTranslation();
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -33,14 +53,14 @@ const ReviewCard = ({ review }) => {
     }
   };
 
-  return (
+  const renderReviewCard = (review) => (
     <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           {review?.user_image_base64 ? (
-            <img 
-              src={review?.user_image_base64} 
-              alt={review?.username} 
+            <img
+              src={review?.user_image_base64}
+              alt={review?.username}
               className="w-10 h-10 rounded-full object-cover border border-white/20"
             />
           ) : (
@@ -62,44 +82,70 @@ const ReviewCard = ({ review }) => {
           </div>
         </div>
       </div>
-      
+
       <h5 className="font-medium text-lg mb-2">{review?.review_title}</h5>
       <p className="text-white/90 leading-relaxed">{review?.review_text}</p>
     </div>
   );
-};
 
-const BookDetail = () => {
-  const [searchParams] = useSearchParams();
-  const id = searchParams.get('id');
-  const [book, setBook] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { currentUser } = useSelector((state) => state.user);
-  const [reviews, setReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
-
-  // Review Form States (modal yerine inline)
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewData, setReviewData] = useState({
-    rating: 5,
-    title: '',
-    content: ''
-  });
-  const [reviewLoading, setReviewLoading] = useState(false);
-  const [reviewError, setReviewError] = useState(null);
-
-  useEffect(() => {
-    if (!id) {
-      setError("No book ID provided in URL parameters");
-      setLoading(false);
-      return;
+  const getBookImage = useCallback((book) => {
+    if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
+      return book.image_base64;
     }
+    if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
+      return book.image_url;
+    }
+    if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
+      return book.cover_image;
+    }
+    if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
+      return book.image;
+    }
+    return "/images/book-placeholder.png";
+  }, []);
 
-    // Tüm ID türleri için core backend'i kullan
-    fetchFromCoreBackend(id);
-    fetchReviews(id);
-  }, [id]);
+  const renderBookCover = useCallback((book) => {
+    const imageUrl = getBookImage(book);
+    const hasRealImage = imageUrl !== "/images/book-placeholder.png";
+
+    return (
+      <div className="relative w-48 h-72 rounded shadow-lg overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={book.title || "Book"}
+          className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
+          onError={(e) => {
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+
+        <div
+          className={`w-full h-full ${hasRealImage ? 'hidden' : 'flex'} bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex-col justify-between p-6 text-white relative overflow-hidden`}
+          style={{ display: hasRealImage ? 'none' : 'flex' }}
+        >
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-3 left-3 w-8 h-8 border-2 border-white/30 rounded"></div>
+            <div className="absolute bottom-3 right-3 w-6 h-6 border border-white/30 rounded-full"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-white/20 rounded-full"></div>
+          </div>
+
+          <div className="relative z-10 flex-1 flex items-center justify-center">
+            <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
+              {book.title || "Unknown Title"}
+            </h3>
+          </div>
+
+          <div className="relative z-10 mt-auto">
+            <div className="h-px bg-white/30 mb-3"></div>
+            <p className="text-sm opacity-90 font-medium text-center">
+              {book.author || "Unknown Author"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }, [getBookImage]);
 
   const fetchFromCoreBackend = useCallback((id) => {
     setLoading(true);
@@ -117,7 +163,6 @@ const BookDetail = () => {
           throw new Error("Expected JSON response, but received HTML");
         }
 
-        // Backend spesifik hata kontrolü
         if (data.status?.code === "3") {
           setError(data.values?.[0] || "Book not found.");
           return;
@@ -148,7 +193,7 @@ const BookDetail = () => {
   const fetchReviews = async (bookId) => {
     try {
       const response = await api.post("/reviews/get/book-reviews", parseInt(bookId));
-      
+
       if (response?.data?.status?.code === "0") {
         setReviews(response.data.reviews || []);
       }
@@ -159,79 +204,6 @@ const BookDetail = () => {
     }
   };
 
-  // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
-  const getBookImage = useCallback((book) => {
-    // Önce base64 resim var mı kontrol et
-    if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
-      return book.image_base64;
-    }
-
-    // API'den gelen normal URL resim varsa onu kullan
-    if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
-      return book.image_url;
-    }
-    if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
-      return book.cover_image;
-    }
-    if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
-      return book.image;
-    }
-
-    // Gerçek resim yoksa placeholder kullan
-    return "/images/book-placeholder.png";
-  }, []);
-
-  // Kitap kapağı elementi oluştur - useCallback ile optimize et  
-  const renderBookCover = useCallback((book) => {
-    const imageUrl = getBookImage(book);
-    const hasRealImage = imageUrl !== "/images/book-placeholder.png";
-
-    return (
-      <div className="relative w-48 h-72 rounded shadow-lg overflow-hidden">
-        {/* Gerçek resim */}
-        <img
-          src={imageUrl}
-          alt={book.title || "Book"}
-          className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
-          onError={(e) => {
-            // Gerçek resim yüklenemezse özel tasarım göster
-            e.target.style.display = 'none';
-            e.target.nextSibling.style.display = 'flex';
-          }}
-        />
-
-        {/* Özel kitap kapağı tasarımı (fallback) */}
-        <div
-          className={`w-full h-full ${hasRealImage ? 'hidden' : 'flex'} bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex-col justify-between p-6 text-white relative overflow-hidden`}
-          style={{ display: hasRealImage ? 'none' : 'flex' }}
-        >
-          {/* Arka plan deseni */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-3 left-3 w-8 h-8 border-2 border-white/30 rounded"></div>
-            <div className="absolute bottom-3 right-3 w-6 h-6 border border-white/30 rounded-full"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-white/20 rounded-full"></div>
-          </div>
-
-          {/* Kitap başlığı */}
-          <div className="relative z-10 flex-1 flex items-center justify-center">
-            <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
-              {book.title || "Unknown Title"}
-            </h3>
-          </div>
-
-          {/* Yazar adı */}
-          <div className="relative z-10 mt-auto">
-            <div className="h-px bg-white/30 mb-3"></div>
-            <p className="text-sm opacity-90 font-medium text-center">
-              {book.author || "Unknown Author"}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }, [getBookImage]);
-
-  // Review submission handler
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     setReviewLoading(true);
@@ -249,9 +221,7 @@ const BookDetail = () => {
       const response = await api.post("/reviews/create/book-review", reviewPayload);
       if (response?.data?.code === "0") {
         toast.success("Yorumunuz başarıyla eklendi!");
-        // Yorumları yeniden yükle
         fetchReviews(book.id);
-        // Form'u kapat ve temizle
         setShowReviewForm(false);
         setReviewData({
           rating: 5,
@@ -269,12 +239,10 @@ const BookDetail = () => {
     }
   };
 
-  // Review form'unu aç/kapat
   const toggleReviewForm = () => {
     setShowReviewForm(!showReviewForm);
     setReviewError(null);
     if (!showReviewForm) {
-      // Form açılırken temizle
       setReviewData({
         rating: 5,
         title: '',
@@ -283,36 +251,62 @@ const BookDetail = () => {
     }
   };
 
-  // Like handler
   const handleLike = async () => {
     if (!currentUser) {
-      toast.info("Lütfen beğenmek için giriş yapın.");
+      toast.info("Please login to like this book.");
       return;
     }
     if (!book) return;
 
     try {
-      const response = await fetch('/api/shelves/like', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: currentUser.id || currentUser._id,
-          book_id: book.id || book._id
-        })
+      const response = await api.post('/user-book-relations/like', {
+        user_id: currentUser.id || currentUser._id,
+        book_id: book.id || book._id
       });
-      const data = await response.json();
-      if (data.code === "0") {
-        toast.success("Kitap beğenilere eklendi!");
-        // İsteğe bağlı: Beğeni state'i güncellenebilir
+
+      if (response?.data?.code === "100") {
+        setBookStatus(prev => ({
+          like: true,
+          favorite: prev.favorite
+        }));
+      } else if (response?.data?.code === "101") {
+        setBookStatus(prev => ({
+          like: false,
+          favorite: prev.favorite
+        }));
       } else {
-        toast.error("Hata: " + (data.values ? data.values.join(', ') : 'Bilinmeyen hata'));
+        toast.error("Error: " + (response.values ? response.values.join(', ') : 'Unknown error'));
       }
     } catch (err) {
       toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };
+
+  useEffect(() => {
+    if (!id) {
+      setError("No book ID provided in URL parameters");
+      setLoading(false);
+      return;
+    }
+
+    fetchFromCoreBackend(id);
+    fetchReviews(id);
+  }, [id, fetchFromCoreBackend]);
+
+  useEffect(() => {
+    api.post('/user-book-relations/get/user-book-relation', {
+      user_id: currentUser?.id || currentUser?._id,
+      book_id: book?.id || book?._id
+    }).then((res) => {
+      console.log()
+      if (res?.data?.status?.code === "0") {
+        setBookStatus(prev => ({
+          like: res?.data?.userBookRelations?.[0]?.like,
+          favorite: res?.data?.userBookRelations?.[0]?.favorite
+        }));
+      }
+    })
+  }, [currentUser, book]);
 
   if (loading) {
     return (
@@ -364,16 +358,10 @@ const BookDetail = () => {
       className="relative min-h-screen bg-cover bg-center text-white"
       style={{ backgroundImage: "url('/images/book-bg.png')" }}
     >
-      {/* Overlay */}
       <div className="absolute inset-0 bg-black/70 z-0" />
-
-      {/* İçerik */}
       <div className="relative z-10 py-20 px-6 max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row gap-10 items-start">
-          {/* Poster */}
           {renderBookCover(book)}
-
-          {/* Kitap Bilgileri */}
           <div className="flex-1 space-y-4">
             <h1 className="text-3xl font-bold">{book.title || "Unknown Title"}</h1>
             <p className="text-white/70 text-sm">
@@ -381,7 +369,6 @@ const BookDetail = () => {
               {(book.published_year || book.year) && ` • ${book.published_year || book.year}`}
             </p>
 
-            {/* Rating */}
             {book.rating && (
               <div className="flex items-center gap-2">
                 <span className="text-yellow-400 text-lg">
@@ -392,7 +379,6 @@ const BookDetail = () => {
               </div>
             )}
 
-            {/* Read Count */}
             {book.reads !== undefined && (
               <div className="flex items-center gap-2">
                 <span className="text-blue-400">📖</span>
@@ -400,17 +386,14 @@ const BookDetail = () => {
               </div>
             )}
 
-            {/* ISBN */}
             {book.isbn && (
               <p className="text-white/60 text-sm">ISBN: {book.isbn}</p>
             )}
 
-            {/* Publisher */}
             {book.publisher && (
               <p className="text-white/60 text-sm">Publisher: {book.publisher}</p>
             )}
 
-            {/* Description */}
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Description</h3>
               <p className="text-white/90 leading-relaxed">
@@ -418,7 +401,6 @@ const BookDetail = () => {
               </p>
             </div>
 
-            {/* Tags/Genres */}
             {book.genre && (
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Genre</h3>
@@ -428,7 +410,6 @@ const BookDetail = () => {
               </div>
             )}
 
-            {/* Publication Info */}
             {(book.created_at || book.updated_at) && (
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Publication Info</h3>
@@ -443,13 +424,18 @@ const BookDetail = () => {
               </div>
             )}
 
-            {/* Butonlar */}
             <div className="flex gap-4 mt-6">
               <button
-                className="bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-full transition cursor-pointer"
+                className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 ${bookStatus?.like
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
+                    : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+                  }`}
                 onClick={handleLike}
               >
-                ❤️ Like
+                <span className={`text-xl transition-transform duration-300 ${bookStatus?.like ? 'scale-110' : ''}`}>
+                  {bookStatus?.like ? '❤️' : '🤍'}
+                </span>
+                {bookStatus?.like ? 'Beğenildi' : 'Beğen'}
               </button>
               <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition cursor-pointer">
                 ➕ Add to Reading List
@@ -462,10 +448,8 @@ const BookDetail = () => {
               </button>
             </div>
 
-            {/* Inline Review Form */}
             {showReviewForm && (
               <div className="mt-8 p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
-                {/* Form Header */}
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-bold text-white">Write Review</h3>
                   <button
@@ -476,7 +460,6 @@ const BookDetail = () => {
                   </button>
                 </div>
 
-                {/* Rating */}
                 <div>
                   <label className="block text-white font-medium mb-3">Rating</label>
                   <div className="flex items-center gap-2">
@@ -489,8 +472,8 @@ const BookDetail = () => {
                           setReviewData(prev => ({ ...prev, rating: star }));
                         }}
                         className={`text-3xl transition-colors ${star <= reviewData.rating
-                            ? 'text-yellow-400 hover:text-yellow-300'
-                            : 'text-white/30 hover:text-white/50'
+                          ? 'text-yellow-400 hover:text-yellow-300'
+                          : 'text-white/30 hover:text-white/50'
                           }`}
                       >
                         ★
@@ -500,7 +483,6 @@ const BookDetail = () => {
                   </div>
                 </div>
 
-                {/* Review Title */}
                 <div>
                   <label className="block text-white font-medium mb-2">Review Title</label>
                   <input
@@ -513,7 +495,6 @@ const BookDetail = () => {
                   />
                 </div>
 
-                {/* Review Content */}
                 <div>
                   <label className="block text-white font-medium mb-2">Your Review</label>
                   <textarea
@@ -526,14 +507,12 @@ const BookDetail = () => {
                   />
                 </div>
 
-                {/* Error Message */}
                 {reviewError && (
                   <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
                     {reviewError}
                   </div>
                 )}
 
-                {/* Submit Buttons */}
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
@@ -563,10 +542,9 @@ const BookDetail = () => {
               </div>
             )}
 
-            {/* Reviews Section */}
             <div className="mt-12">
               <h3 className="text-2xl font-bold mb-6">Reviews</h3>
-              
+
               {reviewsLoading ? (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
@@ -574,9 +552,7 @@ const BookDetail = () => {
                 </div>
               ) : reviews.length > 0 ? (
                 <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
-                  ))}
+                  {reviews.map((review) => renderReviewCard(review))}
                 </div>
               ) : (
                 <div className="text-center py-8 bg-white/5 rounded-xl">
