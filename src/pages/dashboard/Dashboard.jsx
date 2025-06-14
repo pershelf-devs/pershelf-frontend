@@ -3,6 +3,7 @@ import { api } from "../../api/api";
 import { Link } from "react-router-dom";
 import { apiCache } from "../../utils/apiCache";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 // Remove mock data for popularBooks - we'll fetch from backend
 // const popularBooks = [
@@ -37,6 +38,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const { currentUser } = useSelector((state) => state.user);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Kullanıcı bilgilerini localStorage'dan al
@@ -183,8 +185,8 @@ const Dashboard = () => {
       <div className="relative z-10 max-w-7xl mx-auto py-20 px-6">
         {/* Welcome Message */}
         <section className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">Welcome back, {getUserDisplayName()}! 🎉</h2>
-          <p className="text-white/80 text-lg">Here's what we've been reading 📚</p>
+          <h2 className="text-4xl font-bold mb-4">{t("welcome_back")}, {getUserDisplayName()}! 🎉</h2>
+          <p className="text-white/80 text-lg">{t("heres_what_we_ve_been_reading")} 📚</p>
         </section>
 
         {/* Main Content Grid */}
@@ -197,26 +199,26 @@ const Dashboard = () => {
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
                 <div className="text-4xl mb-3">📖</div>
                 <p className="text-sm italic text-white/80">
-                  "A reader lives a thousand lives before he dies"
+                  {t("a_reader_lives_a_thousand_lives_before_he_dies")}
                 </p>
                 <p className="text-xs text-white/60 mt-2">- George R.R. Martin</p>
               </div>
               
               {/* Stats Decoration */}
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                <h3 className="font-bold mb-3 text-center">Your Journey</h3>
+                <h3 className="font-bold mb-3 text-center">{t("your_journey")}</h3>
                 <div className="space-y-3 text-center">
                   <div className="text-2xl">🏆</div>
-                  <p className="text-xs text-white/70">Keep reading to unlock achievements!</p>
+                  <p className="text-xs text-white/70">{t("keep_reading_to_unlock_achievements")}!</p>
                 </div>
               </div>
 
               {/* Reviews Section Extra */}
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                <h3 className="font-bold mb-3 text-center">💭 Review Tips</h3>
+                <h3 className="font-bold mb-3 text-center">💭 {t("review_tips")}</h3>
                 <div className="space-y-3 text-center">
                   <div className="text-2xl">✍️</div>
-                  <p className="text-xs text-white/70">Share your honest thoughts and help others discover great reads!</p>
+                  <p className="text-xs text-white/70">{t("share_your_honest_thoughts_and_help_others_discover_great_reads")}!</p>
                 </div>
               </div>
             </div>
@@ -227,7 +229,7 @@ const Dashboard = () => {
             
             {/* Popular Books */}
             <section>
-              <h3 className="text-2xl font-semibold mb-6 text-center">📚 Popular This Month</h3>
+              <h3 className="text-2xl font-semibold mb-6 text-center">📚 {t("popular_this_month")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {loading
                   ? [...Array(3)].map((_, index) => (
@@ -255,8 +257,8 @@ const Dashboard = () => {
                   : (
                     <div className="col-span-full text-center py-12">
                       <div className="text-6xl mb-4">📚</div>
-                      <h4 className="text-xl font-semibold mb-2">No popular books yet</h4>
-                      <p className="text-white/70">Check back later!</p>
+                      <h4 className="text-xl font-semibold mb-2">{t("no_popular_books_yet")}</h4>
+                      <p className="text-white/70">{t("check_back_later")}!</p>
                     </div>
                   )}
               </div>
@@ -264,7 +266,7 @@ const Dashboard = () => {
 
             {/* Popular Reviews */}
             <section>
-              <h3 className="text-2xl font-semibold mb-6 text-center">💬 Popular Reviews This Month</h3>
+              <h3 className="text-2xl font-semibold mb-6 text-center">💬 {t("popular_reviews_this_month")}</h3>
               {reviewsLoading ? (
                 <div className="space-y-6">
                   {[...Array(2)].map((_, index) => (
@@ -305,8 +307,8 @@ const Dashboard = () => {
                           <span className="font-bold">@{review.user?.username || "Anonymous"}</span>
                           <span className="text-yellow-400">{review.rating?.toFixed(1) || "0.0"} / 5.0</span>
                         </div>
-                        <p className="text-sm text-white/80 italic">"{review.comment || "No comment"}"</p>
-                        <p className="text-xs text-white/60 mt-1">❤️ {(review.likes || 0).toLocaleString()} likes</p>
+                        <p className="text-sm text-white/80 italic">"{review.comment || t("no_comment")}"</p>
+                        <p className="text-xs text-white/60 mt-1">❤️ {(review.likes || 0).toLocaleString()} {t("likes")}</p>
                       </div>
                     </div>
                   ))}
@@ -314,8 +316,8 @@ const Dashboard = () => {
               ) : (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">💬</div>
-                  <h4 className="text-xl font-semibold mb-2">No reviews yet</h4>
-                  <p className="text-white/70">Be the first to share your thoughts on a book!</p>
+                  <h4 className="text-xl font-semibold mb-2">{t("no_reviews_yet")}</h4>
+                  <p className="text-white/70">{t("be_the_first_to_share_your_thoughts_on_a_book")}!</p>
                 </div>
               )}
             </section>
@@ -327,44 +329,44 @@ const Dashboard = () => {
               {/* Motivational */}
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
                 <div className="text-4xl mb-3">🌟</div>
-                <h3 className="font-bold mb-2">Keep Reading!</h3>
+                <h3 className="font-bold mb-2">{t("keep_reading")}!</h3>
                 <p className="text-xs text-white/70">
-                  Every page brings new adventures
+                  {t("every_page_brings_new_adventures")}
                 </p>
               </div>
               
               {/* Community */}
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
                 <div className="text-4xl mb-3">👥</div>
-                <h3 className="font-bold mb-2">Join the Community</h3>
+                <h3 className="font-bold mb-2">{t("join_the_community")}</h3>
                 <p className="text-xs text-white/70">
-                  Share your thoughts with fellow readers
+                  {t("share_your_thoughts_with_fellow_readers")}
                 </p>
               </div>
 
               {/* Rating Guide */}
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                <h3 className="font-bold mb-3 text-center">⭐ Rating Guide</h3>
+                <h3 className="font-bold mb-3 text-center">⭐ {t("rating_guide")}</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span>⭐⭐⭐⭐⭐</span>
-                    <span>Amazing!</span>
+                    <span>{t("amazing")}!</span>
                   </div>
                   <div className="flex justify-between">
                     <span>⭐⭐⭐⭐</span>
-                    <span>Really good</span>
+                    <span>{t("really_good")}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>⭐⭐⭐</span>
-                    <span>It's okay</span>
+                    <span>{t("its_okay")}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>⭐⭐</span>
-                    <span>Not great</span>
+                    <span>{t("not_great")}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>⭐</span>
-                    <span>Didn't like it</span>
+                    <span>{t("didnt_like_it")}</span>
                   </div>
                 </div>
               </div>
