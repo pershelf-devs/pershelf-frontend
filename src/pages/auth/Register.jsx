@@ -121,14 +121,14 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-cover bg-center flex items-center justify-center" style={{ backgroundImage: "url('/images/registerlogin.png')" }}>
       <div className="relative z-10 bg-white/10 backdrop-blur-md text-white rounded-xl shadow-xl p-8 w-full max-w-md mx-4">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create your Pershelf account</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">{t("create_your_pershelf_account")}</h2>
 
         <form className="flex flex-col gap-4" onSubmit={handleRegister}>
           <div>
             <input 
               type="text" 
               name="name" 
-              placeholder="Name" 
+              placeholder={t("name")} 
               value={formData.name}
               onChange={handleChange} 
               className={`w-full bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none ${errors.name ? 'border-2 border-red-500' : ''}`}
@@ -140,7 +140,7 @@ const Register = () => {
             <input 
               type="text" 
               name="surname" 
-              placeholder="Surname" 
+              placeholder={t("surname")} 
               value={formData.surname}
               onChange={handleChange} 
               className={`w-full bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none ${errors.surname ? 'border-2 border-red-500' : ''}`}
@@ -152,7 +152,7 @@ const Register = () => {
             <input 
               type="text" 
               name="username" 
-              placeholder="Username" 
+              placeholder={t("username")} 
               value={formData.username}
               onChange={handleChange} 
               className={`w-full bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none ${errors.username ? 'border-2 border-red-500' : ''}`}
@@ -164,7 +164,7 @@ const Register = () => {
             <input 
               type="email" 
               name="email" 
-              placeholder="Email" 
+              placeholder={t("email")} 
               value={formData.email}
               onChange={handleChange} 
               className={`w-full bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none ${errors.email ? 'border-2 border-red-500' : ''}`}
@@ -176,20 +176,20 @@ const Register = () => {
             <input 
               type="password" 
               name="password" 
-              placeholder="Password" 
+              placeholder={t("password")} 
               value={formData.password}
               onChange={handleChange} 
               className={`w-full bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none ${errors.password ? 'border-2 border-red-500' : ''}`}
             />
             {errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}
-            <p className="text-white/60 text-xs mt-1">Must be 8+ chars with uppercase, lowercase & number</p>
+            <p className="text-white/60 text-xs mt-1">{t("password_requirements")}</p>
           </div>
 
           <div>
             <input 
               type="password" 
               name="confirm_password" 
-              placeholder="Confirm Password" 
+              placeholder={t("confirm_password")} 
               value={formData.confirm_password}
               onChange={handleChange} 
               className={`w-full bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none ${errors.confirm_password ? 'border-2 border-red-500' : ''}`}
@@ -198,30 +198,17 @@ const Register = () => {
           </div>
 
           <button type="submit" className="bg-white text-black font-semibold py-2 rounded-md hover:bg-gray-200 transition">
-            Register
+            {t("register")}
           </button>
         </form>
 
         <p className="text-sm mt-4 text-center">
-          Already have an account?{" "}
+          {t("already_have_an_account")}
           <a href="/login" className="underline text-white/90 hover:text-white">
-            Login here
+            {t("login_here")}
           </a>
         </p>
       </div>
-      
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
     </div>
   );
 };
