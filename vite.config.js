@@ -13,7 +13,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: `http://45.84.191.83:443`,
+        target: `http://45.84.191.83:8080`,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/restapi/v1.0'),
