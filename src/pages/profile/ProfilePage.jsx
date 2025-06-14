@@ -32,7 +32,7 @@ const ProfilePage = () => {
       case 'fetchReviews':
         setReviewsLoading(true);
         try {
-          const response = await api.post(`/reviews/get/by-user`, currentUser?.id);
+          const response = await api.post(`/reviews/get/user-reviews`, currentUser?.id);
           if (response?.data?.status?.code === "0") {
             const reviewsData = response.data.reviews || [];
             

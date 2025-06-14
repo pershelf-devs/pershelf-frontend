@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import axios from "axios";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";

@@ -89,7 +89,7 @@ const UserProfile = () => {
   const fetchUserReviews = async () => {
     setReviewsLoading(true);
     try {
-      const response = await api.post(`/reviews/get/by-user`, userId);
+      const response = await api.post(`/reviews/get/user-reviews`, userId);
       if (response?.data?.status?.code === "0") {
         const reviewsData = response.data.reviews || [];
         
@@ -100,7 +100,11 @@ const UserProfile = () => {
         if (bookIds.length > 0) {
           try {
             const bookPromises = bookIds.map(bookId => 
-              api.post("/api/books/get/id", parseInt(bookId))
+              api.post("/books/get/id", parseInt(bookId), {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              })
                 .then(res => {
                   const bookData = res.data?.books?.[0] || res.data;
                   return {
@@ -333,7 +337,10 @@ const UserProfile = () => {
                       <div className="flex gap-4">
                         {/* Kitap Kapağı */}
                         <div className="flex-shrink-0">
-                          <div className="w-16 h-24 rounded overflow-hidden">
+                          <a 
+                            href={`/book/details?id=${review.book_id}`}
+                            className="block w-16 h-24 rounded overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
+                          >
                             {review.book_image ? (
                               <img
                                 src={review.book_image}
@@ -345,14 +352,19 @@ const UserProfile = () => {
                                 {review.book_title?.substring(0, 10) || "?"}
                               </div>
                             )}
-                          </div>
+                          </a>
                         </div>
 
                         {/* Yorum İçeriği */}
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <h4 className="font-semibold text-white text-lg">{review.book_title}</h4>
+                              <a 
+                                href={`/book/details?id=${review.book_id}`}
+                                className="hover:text-blue-300 transition-colors"
+                              >
+                                <h4 className="font-semibold text-white text-lg hover:underline">{review.book_title}</h4>
+                              </a>
                               <p className="text-white/70 text-sm">{review.book_author}</p>
                             </div>
                             <div className="flex items-center gap-1">
@@ -425,11 +437,9 @@ const UserProfile = () => {
             <h3 className="text-xl font-semibold text-white mb-4">⭐ Favori Kitaplar ({favoriteBooks.length})</h3>
             {favoriteBooks.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {paginatedFavorites.map((book, index) => (
-                    <div key={book.id || book._id || index} className="transform scale-50 origin-top-left">
-                      <BooksCard book={book} />
-                    </div>
+                    <BooksCard key={book.id || book._id || index} book={book} />
                   ))}
                 </div>
                 {renderPagination(favoriteBooks, "Favorites")}

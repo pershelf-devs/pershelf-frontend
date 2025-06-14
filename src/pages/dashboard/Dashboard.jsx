@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { api } from "../../api/api";
 import { Link } from "react-router-dom";
 import { apiCache } from "../../utils/apiCache";
 import { useSelector } from "react-redux";
@@ -62,8 +62,8 @@ const Dashboard = () => {
     }
 
     // Popular books'u backend'den çek
-    axios
-      .post("/api/books/discover/most-reads", { limit: 3 })
+    api
+      .post("/books/discover/most-reads", { limit: 3 })
       .then(res => {
         if (res.data?.status?.code === "0") {
           const books = res.data.books || [];
