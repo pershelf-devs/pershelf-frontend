@@ -48,17 +48,19 @@ const Explore = () => {
             return {
               bookId,
               like: res.data.userBookRelations[0].like,
-              favorite: res.data.userBookRelations[0].favorite
+              favorite: res.data.userBookRelations[0].favorite,
+              read: res.data.userBookRelations[0].read,
+              readingList: res.data.userBookRelations[0].readingList || res.data.userBookRelations[0].read_list
             };
           }
-          return { bookId, like: false, favorite: false };
-        }).catch(() => ({ bookId, like: false, favorite: false }));
+          return { bookId, like: false, favorite: false, read: false, readingList: false };
+        }).catch(() => ({ bookId, like: false, favorite: false, read: false, readingList: false }));
       });
 
       const results = await Promise.all(promises);
       const statusMap = {};
-      results.forEach(({ bookId, like, favorite }) => {
-        statusMap[bookId] = { like, favorite };
+      results.forEach(({ bookId, like, favorite, read, readingList }) => {
+        statusMap[bookId] = { like, favorite, read, readingList };
       });
       
       setBookStatuses(statusMap);
@@ -220,6 +222,14 @@ const Explore = () => {
     if (!book) return;
 
     const bookId = book.id || book._id;
+    const isRead = bookStatuses[bookId]?.read;
+    
+    // Hierarchy check: Must read before liking
+    if (!isRead) {
+      toast.warning("📖 Önce kitabı okumalısınız!");
+      return;
+    }
+
     try {
       const response = await api.post('/user-book-relations/like', {
         user_id: currentUser.id || currentUser._id,
@@ -234,7 +244,9 @@ const Explore = () => {
             [bookId]: {
               ...prev[bookId],
               like: response.data.userBookRelations[0].like,
-              favorite: response.data.userBookRelations[0].favorite
+              favorite: response.data.userBookRelations[0].favorite,
+              read: response.data.userBookRelations[0].read,
+              readingList: response.data.userBookRelations[0].readingList || response.data.userBookRelations[0].read_list
             }
           }));
           
@@ -242,6 +254,11 @@ const Explore = () => {
             toast.success("❤️ Kitap beğenildi!");
           } else {
             toast.info("🤍 Beğeni kaldırıldı!");
+          }
+
+          // Real-time updates for ProfilePage
+          if (window.refreshProfileLikedBooks) {
+            window.refreshProfileLikedBooks();
           }
         }
       } 
@@ -261,6 +278,14 @@ const Explore = () => {
     if (!book) return;
 
     const bookId = book.id || book._id;
+    const isRead = bookStatuses[bookId]?.read;
+    
+    // Hierarchy check: Must read before favoriting
+    if (!isRead) {
+      toast.warning("📖 Önce kitabı okumalısınız!");
+      return;
+    }
+
     try {
       const response = await api.post('/user-book-relations/favorite', {
         user_id: currentUser.id || currentUser._id,
@@ -275,7 +300,9 @@ const Explore = () => {
             [bookId]: {
               ...prev[bookId],
               like: response.data.userBookRelations[0].like,
-              favorite: response.data.userBookRelations[0].favorite
+              favorite: response.data.userBookRelations[0].favorite,
+              read: response.data.userBookRelations[0].read,
+              readingList: response.data.userBookRelations[0].readingList || response.data.userBookRelations[0].read_list
             }
           }));
           
@@ -284,6 +311,11 @@ const Explore = () => {
           } else {
             toast.info("☆ Favorilerden çıkarıldı!");
           }
+
+          // Real-time updates for ProfilePage
+          if (window.refreshProfileFavoriteBooks) {
+            window.refreshProfileFavoriteBooks();
+          }
         }
       } 
     } catch (err) {
@@ -291,6 +323,52 @@ const Explore = () => {
     }
   };
 
+  const handleRead = async (book, event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    if (!currentUser) {
+      toast.info("Lütfen giriş yapın.");
+      return;
+    }
+    if (!book) return;
+
+    const bookId = book.id || book._id;
+    try {
+      const response = await api.post('/user-book-relations/set-as-read', {
+        user_id: currentUser.id || currentUser._id,
+        book_id: bookId
+      });
+
+      if (response?.data?.status?.code === "0") {
+        if (response?.data?.userBookRelations?.[0]) {
+          setBookStatuses(prev => ({
+            ...prev,
+            [bookId]: {
+              ...prev[bookId],
+              like: response.data.userBookRelations[0].like,
+              favorite: response.data.userBookRelations[0].favorite,
+              read: response.data.userBookRelations[0].read,
+              readingList: response.data.userBookRelations[0].readingList || response.data.userBookRelations[0].read_list
+            }
+          }));
+          
+          if (response.data.userBookRelations[0].read) {
+            toast.success("👁️✅ Kitap okundu olarak işaretlendi!");
+          } else {
+            toast.info("👁️ Okudum işareti kaldırıldı!");
+          }
+
+          // Real-time updates for ProfilePage
+          if (window.refreshProfileReadList) {
+            window.refreshProfileReadList();
+          }
+        }
+      } 
+    } catch (err) {
+      toast.error("İşlem başarısız. Lütfen tekrar deneyin.");
+    }
+  };
 
   // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
   const getBookImage = useCallback((book) => {
@@ -367,41 +445,70 @@ const Explore = () => {
   const renderSearchBookCard = (book) => {
     const imageUrl = getBookImage(book);
     const hasRealImage = imageUrl !== "/images/book-placeholder.png";
+    const bookId = book.id || book._id;
+    const isRead = bookStatuses[bookId]?.read;
 
     return (
       <div
         key={book._id || book.id}
         className="group relative bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105"
       >
-        {/* Like and Favorite buttons - Visual only */}
-        <div className="absolute top-2 right-2 flex gap-2 z-10">
+        {/* Read, Like and Favorite buttons */}
+        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+          {/* Read Button */}
           <button
-            className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 ${bookStatuses[book.id || book._id]?.like
-              ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30 scale-105'
-              : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+            className={`px-3 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-sm ${bookStatuses[bookId]?.read
+              ? 'bg-green-600/90 text-white shadow-lg shadow-green-500/30 scale-105'
+              : 'bg-green-500/20 text-white/80 hover:bg-green-500/30'
               }`}
-            onClick={(e) => handleLike(book, e)}
+            onClick={(e) => handleRead(book, e)}
           >
-            <span className={`text-xl transition-transform duration-300 ${bookStatuses[book.id || book._id]?.like ? 'scale-110' : ''}`}>
-              {bookStatuses[book.id || book._id]?.like ? '❤️' : '🤍'}
-            </span>
-            {bookStatuses[book.id || book._id]?.like ? 'Beğenildi' : 'Beğen'}
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+            </svg>
+            {bookStatuses[bookId]?.read ? 'Okundu' : 'Okudum'}
           </button>
-          {/* Add to Favorite */}
-          <button
-            onClick={(e) => handleFavorite(book, e)}
-            className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 min-w-[140px] ${bookStatuses[book.id || book._id]?.favorite
-                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
-                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20 hover:shadow-lg hover:shadow-purple-500/20'
+
+          <div className="flex gap-2">
+            {/* Like Button */}
+            <button
+              className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 ${
+                !isRead 
+                  ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed opacity-50'
+                  : bookStatuses[bookId]?.like
+                    ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30 scale-105'
+                    : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
               }`}
-          >
-          <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
-            {bookStatuses[book.id || book._id]?.favorite ? '★' : '☆'}
-            </span>
-            <span className={`group-hover:text-white/90 ${bookStatuses[book.id || book._id]?.favorite ? 'text-yellow-300' : ''}`}>
-              {bookStatuses[book.id || book._id]?.favorite ? 'Favorilerde' : 'Favorilere Ekle'}
-            </span>
-          </button>
+              onClick={(e) => handleLike(book, e)}
+              disabled={!isRead}
+            >
+              <span className={`text-xl transition-transform duration-300 ${bookStatuses[bookId]?.like ? 'scale-110' : ''}`}>
+                {bookStatuses[bookId]?.like ? '❤️' : '🤍'}
+              </span>
+              {bookStatuses[bookId]?.like ? 'Beğenildi' : 'Beğen'}
+            </button>
+            
+            {/* Add to Favorite */}
+            <button
+              onClick={(e) => handleFavorite(book, e)}
+              disabled={!isRead}
+              className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 min-w-[140px] ${
+                !isRead
+                  ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed opacity-50'
+                  : bookStatuses[bookId]?.favorite
+                    ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                    : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20 hover:shadow-lg hover:shadow-purple-500/20'
+              }`}
+            >
+              <span className={`text-xl transition-all duration-300 ${bookStatuses[bookId]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
+                {bookStatuses[bookId]?.favorite ? '★' : '☆'}
+              </span>
+              <span className={`group-hover:text-white/90 ${bookStatuses[bookId]?.favorite ? 'text-yellow-300' : ''}`}>
+                {bookStatuses[bookId]?.favorite ? 'Favorilerde' : 'Favorilere Ekle'}
+              </span>
+            </button>
+          </div>
         </div>
 
         <Link
@@ -425,7 +532,7 @@ const Explore = () => {
             </div>
 
             {/* Book Info */}
-            <div className="flex-1 min-w-0 pr-16">
+            <div className="flex-1 min-w-0 pr-44">
               <h3 className="text-white font-semibold text-sm group-hover:text-blue-300 transition-colors line-clamp-2">
                 {book.title || "Unknown Title"}
               </h3>
@@ -527,16 +634,42 @@ const Explore = () => {
                         key={book.id || book._id || index}
                         className="relative bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
                       >
+                        {/* Read Button at top */}
+                        <div className="absolute top-4 left-4 z-10">
+                          <button
+                            className={`px-3 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-sm ${bookStatuses[book.id || book._id]?.read
+                              ? 'bg-green-600/90 text-white shadow-lg shadow-green-500/30'
+                              : 'bg-green-500/20 text-white/80 hover:bg-green-500/30'
+                              }`}
+                            onClick={(e) => handleRead(book, e)}
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                            </svg>
+                            {bookStatuses[book.id || book._id]?.read ? 'Okundu' : 'Okudum'}
+                          </button>
+                        </div>
+
                         {/* Like and Favorite buttons - Visual only */}
                         <div className="absolute bottom-4 right-4 flex gap-2 z-10">
                           <button
                             className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
-                              bookStatuses[book.id || book._id]?.like
-                                ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30'
-                                : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+                              !bookStatuses[book.id || book._id]?.read
+                                ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed opacity-50'
+                                : bookStatuses[book.id || book._id]?.like
+                                  ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30'
+                                  : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
                             }`}
                             onClick={(e) => handleLike(book, e)}
-                            title={bookStatuses[book.id || book._id]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
+                            disabled={!bookStatuses[book.id || book._id]?.read}
+                            title={
+                              !bookStatuses[book.id || book._id]?.read 
+                                ? 'Önce kitabı okumalısınız'
+                                : bookStatuses[book.id || book._id]?.like 
+                                  ? 'Beğeniyi Kaldır' 
+                                  : 'Beğen'
+                            }
                           >
                             <span className="text-xl">
                               {bookStatuses[book.id || book._id]?.like ? '❤️' : '🤍'}
@@ -545,12 +678,21 @@ const Explore = () => {
                           
                           <button
                             className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer min-w-[44px] ${
-                              bookStatuses[book.id || book._id]?.favorite
-                                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
-                                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
+                              !bookStatuses[book.id || book._id]?.read
+                                ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed opacity-50'
+                                : bookStatuses[book.id || book._id]?.favorite
+                                  ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                                  : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
                             }`}
                             onClick={(e) => handleFavorite(book, e)}
-                            title={bookStatuses[book.id || book._id]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                            disabled={!bookStatuses[book.id || book._id]?.read}
+                            title={
+                              !bookStatuses[book.id || book._id]?.read 
+                                ? 'Önce kitabı okumalısınız'
+                                : bookStatuses[book.id || book._id]?.favorite 
+                                  ? 'Favorilerden Çıkar' 
+                                  : 'Favorilere Ekle'
+                            }
                           >
                         <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
                           {bookStatuses[book.id || book._id]?.favorite ? '★' : '☆'}
