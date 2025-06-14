@@ -2,6 +2,9 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiCache } from "../../utils/apiCache";
+import { api } from "../../api/api";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const Explore = () => {
   const [searchParams] = useSearchParams();
@@ -12,6 +15,8 @@ const Explore = () => {
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [bookStatuses, setBookStatuses] = useState({});
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
     // Eş zamanlı olarak hem popüler kitapları hem de kategorileri çek
@@ -28,6 +33,54 @@ const Explore = () => {
       setSearchResults([]);
     }
   }, [query]);
+
+  // Kitapların durumlarını getir
+  const fetchBookStatuses = useCallback(async (books) => {
+    if (!currentUser || books.length === 0) return;
+
+    try {
+      const promises = books.map(book => {
+        const bookId = book.id || book._id;
+        return api.post('/user-book-relations/get/user-book-relation', {
+          user_id: currentUser.id || currentUser._id,
+          book_id: bookId
+        }).then(res => {
+          if (res?.data?.status?.code === "0" && res?.data?.userBookRelations?.[0]) {
+            return {
+              bookId,
+              like: res.data.userBookRelations[0].like,
+              favorite: res.data.userBookRelations[0].favorite
+            };
+          }
+          return { bookId, like: false, favorite: false };
+        }).catch(() => ({ bookId, like: false, favorite: false }));
+      });
+
+      const results = await Promise.all(promises);
+      const statusMap = {};
+      results.forEach(({ bookId, like, favorite }) => {
+        statusMap[bookId] = { like, favorite };
+      });
+      
+      setBookStatuses(statusMap);
+    } catch (err) {
+      console.error("Kitap durumları alınamadı:", err);
+    }
+  }, [currentUser]);
+
+  // Popüler kitaplar yüklendiğinde durumlarını çek
+  useEffect(() => {
+    if (popularBooks.length > 0) {
+      fetchBookStatuses(popularBooks);
+    }
+  }, [popularBooks, fetchBookStatuses]);
+
+  // Arama sonuçları yüklendiğinde durumlarını çek
+  useEffect(() => {
+    if (searchResults.length > 0) {
+      fetchBookStatuses(searchResults);
+    }
+  }, [searchResults, fetchBookStatuses]);
 
   const fetchPopularBooks = async () => {
     const cacheKey = 'most-reads-6';
@@ -157,6 +210,92 @@ const Explore = () => {
     }
   };
 
+  const handleLike = async (book, event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    if (!currentUser) {
+      toast.info("Please login to like this book.");
+      return;
+    }
+    if (!book) return;
+
+    const bookId = book.id || book._id;
+    try {
+      const response = await api.post('/user-book-relations/like', {
+        user_id: currentUser.id || currentUser._id,
+        book_id: bookId
+      });
+
+      if (response?.data?.code === "100") {
+        setBookStatuses(prev => ({
+          ...prev,
+          [bookId]: {
+            ...prev[bookId],
+            like: true
+          }
+        }));
+        toast.success("Kitap beğenildi!");
+      } else if (response?.data?.code === "101") {
+        setBookStatuses(prev => ({
+          ...prev,
+          [bookId]: {
+            ...prev[bookId],
+            like: false
+          }
+        }));
+        toast.info("Beğeni kaldırıldı.");
+      } else {
+        toast.error("Error: " + (response.values ? response.values.join(', ') : 'Unknown error'));
+      }
+    } catch (err) {
+      toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
+    }
+  };
+
+  const handleFavorite = async (book, event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    if (!currentUser) {
+      toast.info("Lütfen favori eklemek için giriş yapın.");
+      return;
+    }
+    if (!book) return;
+
+    const bookId = book.id || book._id;
+    try {
+      const response = await api.post('/user-book-relations/favorite', {
+        user_id: currentUser.id || currentUser._id,
+        book_id: bookId
+      });
+
+      if (response?.data?.code === "100") {
+        setBookStatuses(prev => ({
+          ...prev,
+          [bookId]: {
+            ...prev[bookId],
+            favorite: true
+          }
+        }));
+        toast.success("Favorilere eklendi!");
+      } else if (response?.data?.code === "101") {
+        setBookStatuses(prev => ({
+          ...prev,
+          [bookId]: {
+            ...prev[bookId],
+            favorite: false
+          }
+        }));
+        toast.info("Favorilerden çıkarıldı.");
+      }
+    } catch (err) {
+      console.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
+      toast.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
+    }
+  };
+
+
   // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
   const getBookImage = useCallback((book) => {
     // Önce base64 resim var mı kontrol et
@@ -234,52 +373,87 @@ const Explore = () => {
     const hasRealImage = imageUrl !== "/images/book-placeholder.png";
 
     return (
-      <Link
+      <div
         key={book._id || book.id}
-        to={`/book/details?id=${book._id || book.id}`}
-        className="group block bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105"
+        className="group relative bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105"
       >
-        <div className="flex gap-4">
-          {/* Book Cover */}
-          <div className="relative w-16 h-24 rounded overflow-hidden flex-shrink-0">
-            {hasRealImage ? (
-              <img
-                src={imageUrl}
-                alt={book.title || "Book"}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-bold text-center p-1">
-                {book.title || "?"}
-              </div>
-            )}
-          </div>
-
-          {/* Book Info */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-white font-semibold text-sm group-hover:text-blue-300 transition-colors line-clamp-2">
-              {book.title || "Unknown Title"}
-            </h3>
-            <p className="text-white/70 text-xs mt-1">
-              {book.author || "Unknown Author"}
-            </p>
-            {book.published_year && (
-              <p className="text-white/60 text-xs mt-1">
-                {book.published_year}
-              </p>
-            )}
-            {book.rating && (
-              <div className="flex items-center gap-1 mt-2">
-                <span className="text-yellow-400 text-xs">
-                  {"★".repeat(Math.floor(book.rating))}
-                  {"☆".repeat(5 - Math.floor(book.rating))}
-                </span>
-                <span className="text-white/60 text-xs">({book.rating})</span>
-              </div>
-            )}
-          </div>
+        {/* Like and Favorite buttons - Visual only */}
+        <div className="absolute top-2 right-2 flex gap-2 z-10">
+          <button
+            className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 ${bookStatuses[book.id || book._id]?.like
+              ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30 scale-105'
+              : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+              }`}
+            onClick={(e) => handleLike(book, e)}
+          >
+            <span className={`text-xl transition-transform duration-300 ${bookStatuses[book.id || book._id]?.like ? 'scale-110' : ''}`}>
+              {bookStatuses[book.id || book._id]?.like ? '❤️' : '🤍'}
+            </span>
+            {bookStatuses[book.id || book._id]?.like ? 'Beğenildi' : 'Beğen'}
+          </button>
+          {/* Add to Favorite */}
+          <button
+            onClick={(e) => handleFavorite(book, e)}
+            className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 ${bookStatuses[book.id || book._id]?.favorite
+                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20 hover:shadow-lg hover:shadow-purple-500/20'
+              }`}
+          >
+          <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
+            {bookStatuses[book.id || book._id]?.favorite ? '⭐' : '☆'}
+            </span>
+            <span className={`group-hover:text-white/90 ${bookStatuses[book.id || book._id]?.favorite ? 'text-yellow-300' : ''}`}>
+              {bookStatuses[book.id || book._id]?.favorite ? 'Favorilerde' : 'Favorilere Ekle'}
+            </span>
+          </button>
         </div>
-      </Link>
+
+        <Link
+          to={`/book/details?id=${book._id || book.id}`}
+          className="block"
+        >
+          <div className="flex gap-4">
+            {/* Book Cover */}
+            <div className="relative w-16 h-24 rounded overflow-hidden flex-shrink-0">
+              {hasRealImage ? (
+                <img
+                  src={imageUrl}
+                  alt={book.title || "Book"}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-bold text-center p-1">
+                  {book.title || "?"}
+                </div>
+              )}
+            </div>
+
+            {/* Book Info */}
+            <div className="flex-1 min-w-0 pr-16">
+              <h3 className="text-white font-semibold text-sm group-hover:text-blue-300 transition-colors line-clamp-2">
+                {book.title || "Unknown Title"}
+              </h3>
+              <p className="text-white/70 text-xs mt-1">
+                {book.author || "Unknown Author"}
+              </p>
+              {book.published_year && (
+                <p className="text-white/60 text-xs mt-1">
+                  {book.published_year}
+                </p>
+              )}
+              {book.rating && (
+                <div className="flex items-center gap-1 mt-2">
+                  <span className="text-yellow-400 text-xs">
+                    {"★".repeat(Math.floor(book.rating))}
+                    {"☆".repeat(5 - Math.floor(book.rating))}
+                  </span>
+                  <span className="text-white/60 text-xs">({book.rating})</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </Link>
+      </div>
     );
   };
 
@@ -353,24 +527,59 @@ const Explore = () => {
                     ))
                   : popularBooks.length > 0
                   ? popularBooks.map((book, index) => (
-                      <Link
+                      <div
                         key={book.id || book._id || index}
-                        to={`/book/details?id=${book.id || book._id}`}
-                        className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
+                        className="relative bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
                       >
-                        {renderBookCover(book)}
-                        <h3 className="text-lg font-semibold">{book.title || "Unknown Title"}</h3>
-                        <p className="text-sm text-white/70">by {book.author || "Unknown Author"}</p>
-                        {book.rating && (
-                          <div className="mt-2 flex items-center">
-                            <span className="text-yellow-400 text-sm">
-                              {"★".repeat(Math.floor(book.rating))}
-                              {"☆".repeat(5 - Math.floor(book.rating))}
+                        {/* Like and Favorite buttons - Visual only */}
+                        <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+                          <button
+                            className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
+                              bookStatuses[book.id || book._id]?.like
+                                ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30'
+                                : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+                            }`}
+                            onClick={(e) => handleLike(book, e)}
+                            title={bookStatuses[book.id || book._id]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
+                          >
+                            <span className="text-xl">
+                              {bookStatuses[book.id || book._id]?.like ? '❤️' : '🤍'}
                             </span>
-                            <span className="text-white/60 text-xs ml-1">({book.rating})</span>
-                          </div>
-                        )}
-                      </Link>
+                          </button>
+                          
+                          <button
+                            className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
+                              bookStatuses[book.id || book._id]?.favorite
+                                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
+                            }`}
+                            onClick={(e) => handleFavorite(book, e)}
+                            title={bookStatuses[book.id || book._id]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                          >
+                        <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
+                          {bookStatuses[book.id || book._id]?.favorite ? '⭐' : '☆'}
+                        </span>
+                          </button>
+                        </div>
+
+                        <Link
+                          to={`/book/details?id=${book.id || book._id}`}
+                          className="block"
+                        >
+                          {renderBookCover(book)}
+                          <h3 className="text-lg font-semibold">{book.title || "Unknown Title"}</h3>
+                          <p className="text-sm text-white/70">by {book.author || "Unknown Author"}</p>
+                          {book.rating && (
+                            <div className="mt-2 flex items-center">
+                              <span className="text-yellow-400 text-sm">
+                                {"★".repeat(Math.floor(book.rating))}
+                                {"☆".repeat(5 - Math.floor(book.rating))}
+                              </span>
+                              <span className="text-white/60 text-xs ml-1">({book.rating})</span>
+                            </div>
+                          )}
+                        </Link>
+                      </div>
                     ))
                   : (
                     <div className="col-span-full text-center py-12">

@@ -260,7 +260,7 @@ const ProfilePage = () => {
 
         {/* Sekmeler */}
         <div className="flex gap-6 mb-6 border-b border-[#a65b38] text-sm">
-          {["Books", "Likes", "Reviews", "Lists", "Readlist"].map((tab) => (
+          {["Books", "Likes", "Reviews", "Readlist"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
