@@ -170,18 +170,7 @@ const Dashboard = () => {
 
   // Kullanıcı adını belirle
   const getUserDisplayName = () => {
-    if (!currentUser) return "User";
-
-    if (currentUser.name && currentUser.surname) {
-      return `${currentUser.name} ${currentUser.surname}`;
-    } else if (currentUser.name) {
-      return currentUser.name;
-    } else if (currentUser.username) {
-      return currentUser.username;
-    } else if (currentUser.email) {
-      return currentUser.email;
-    }
-    return "User";
+    return `${currentUser?.name} ${currentUser?.surname}` || currentUser?.username || currentUser?.email || "User";
   };
 
   return (
