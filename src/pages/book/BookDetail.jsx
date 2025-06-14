@@ -656,7 +656,7 @@ const BookDetail = () => {
                     : 'bg-green-500/20 hover:bg-green-500/30'
                 }`}
               >
-                ✍️ Write Review
+                ✍️ Yorum Yap
               </button>
             </div>
 
