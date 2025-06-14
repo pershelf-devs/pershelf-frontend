@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
+import { api } from "../../api/api";
 
 const Category = () => {
   const {t} = useTranslation();
@@ -28,7 +28,7 @@ const Category = () => {
     
     try {
       // Backend'ten o genre'a ait kitapları çek - capitalize edilmiş string gönder
-      const response = await axios.post("/api/books/get/by-genre", capitalizedGenre, {
+      const response = await api.post("/books/get/by-genre", capitalizedGenre, {
         headers: {
           "Content-Type": "application/json",
         },

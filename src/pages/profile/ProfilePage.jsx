@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
-import axios from "axios";
 import BooksCard from '../../components/elements/BooksCard';
 
 const ProfilePage = () => {
@@ -44,7 +43,7 @@ const ProfilePage = () => {
             if (bookIds.length > 0) {
               try {
                 const bookPromises = bookIds.map(bookId => 
-                  axios.post("/api/books/get/id", parseInt(bookId), {
+                  api.post("/books/get/id", parseInt(bookId), {
                     headers: {
                       "Content-Type": "application/json",
                     },

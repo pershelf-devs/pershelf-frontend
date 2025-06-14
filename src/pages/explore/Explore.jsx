@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiCache } from "../../utils/apiCache";
 import { api } from "../../api/api";
@@ -93,7 +92,7 @@ const Explore = () => {
     }
 
     try {
-      const res = await axios.post("/api/books/discover/most-reads", { limit: 6 });
+      const res = await api.post("/books/discover/most-reads", { limit: 6 });
       if (res.data?.status?.code === "0") {
         const books = res.data.books || [];
         setPopularBooks(books);
@@ -116,7 +115,7 @@ const Explore = () => {
 
     try {
       // Backend'ten mevcut genre'ları çek
-      const res = await axios.get("/api/books/genres", {
+      const res = await api.get("/books/genres", {
         headers: {
           "Content-Type": "application/json",
         },
@@ -185,7 +184,7 @@ const Explore = () => {
     setSearchLoading(true);
     
     try {
-      const response = await axios.post("/api/books/search", {
+      const response = await api.post("/books/search", {
         query: searchQuery,
         limit: 20
       }, {

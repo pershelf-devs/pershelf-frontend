@@ -16,6 +16,16 @@ const UserProfile = () => {
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [readList, setReadList] = useState([]);
   const [userBooks, setUserBooks] = useState([]);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState({
+    Books: 1,
+    Reviews: 1,
+    Liked: 1,
+    Favorites: 1,
+    Readlist: 1
+  });
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (userId) {
@@ -36,6 +46,12 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (user && activeTab) {
+      // Tab değiştiğinde o tab'ın sayfasını 1'e sıfırla
+      setCurrentPage(prev => ({
+        ...prev,
+        [activeTab]: 1
+      }));
+
       switch (activeTab) {
         case "Books":
           if (userBooks.length === 0) fetchUserBooks();
@@ -214,18 +230,82 @@ const UserProfile = () => {
     return "/images/book-placeholder.png";
   };
 
+  // Pagination helper functions
+  const getPaginatedData = (data, tabName) => {
+    const startIndex = (currentPage[tabName] - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return data.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (data) => {
+    return Math.ceil(data.length / itemsPerPage);
+  };
+
+  const handlePageChange = (tabName, pageNumber) => {
+    setCurrentPage(prev => ({
+      ...prev,
+      [tabName]: pageNumber
+    }));
+  };
+
+  const renderPagination = (data, tabName) => {
+    const totalPages = getTotalPages(data);
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-6">
+        <button
+          onClick={() => handlePageChange(tabName, currentPage[tabName] - 1)}
+          disabled={currentPage[tabName] === 1}
+          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          ←
+        </button>
+        
+        {[...Array(totalPages)].map((_, index) => {
+          const pageNum = index + 1;
+          return (
+            <button
+              key={pageNum}
+              onClick={() => handlePageChange(tabName, pageNum)}
+              className={`px-3 py-2 rounded-lg transition-colors ${
+                currentPage[tabName] === pageNum
+                  ? 'bg-white text-gray-900'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+            >
+              {pageNum}
+            </button>
+          );
+        })}
+        
+        <button
+          onClick={() => handlePageChange(tabName, currentPage[tabName] + 1)}
+          disabled={currentPage[tabName] === totalPages}
+          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          →
+        </button>
+      </div>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "Books":
+        const paginatedBooks = getPaginatedData(userBooks, "Books");
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">📚 Okunan Kitaplar ({userBooks.length})</h3>
             {userBooks.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {userBooks.map((book, index) => (
-                  <BooksCard key={book.id || book._id || index} book={book} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {paginatedBooks.map((book, index) => (
+                    <BooksCard key={book.id || book._id || index} book={book} />
+                  ))}
+                </div>
+                {renderPagination(userBooks, "Books")}
+              </>
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">📖</div>
@@ -236,6 +316,7 @@ const UserProfile = () => {
         );
 
       case "Reviews":
+        const paginatedReviews = getPaginatedData(userReviews, "Reviews");
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">📝 Yorumlar ({userReviews.length})</h3>
@@ -245,63 +326,66 @@ const UserProfile = () => {
                 <p className="text-white/70 mt-2">Yorumlar yükleniyor...</p>
               </div>
             ) : userReviews.length > 0 ? (
-              <div className="space-y-4">
-                {userReviews.map((review, index) => (
-                  <div key={review.id || index} className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-                    <div className="flex gap-4">
-                      {/* Kitap Kapağı */}
-                      <div className="flex-shrink-0">
-                        <div className="w-16 h-24 rounded overflow-hidden">
-                          {review.book_image ? (
-                            <img
-                              src={review.book_image}
-                              alt={review.book_title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-bold text-center p-1">
-                              {review.book_title?.substring(0, 10) || "?"}
-                            </div>
-                          )}
+              <>
+                <div className="space-y-4">
+                  {paginatedReviews.map((review, index) => (
+                    <div key={review.id || index} className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                      <div className="flex gap-4">
+                        {/* Kitap Kapağı */}
+                        <div className="flex-shrink-0">
+                          <div className="w-16 h-24 rounded overflow-hidden">
+                            {review.book_image ? (
+                              <img
+                                src={review.book_image}
+                                alt={review.book_title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-bold text-center p-1">
+                                {review.book_title?.substring(0, 10) || "?"}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Yorum İçeriği */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h4 className="font-semibold text-white text-lg">{review.book_title}</h4>
-                            <p className="text-white/70 text-sm">{review.book_author}</p>
+                        {/* Yorum İçeriği */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold text-white text-lg">{review.book_title}</h4>
+                              <p className="text-white/70 text-sm">{review.book_author}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <span
+                                  key={i}
+                                  className={`text-lg ${
+                                    i < review.rating ? 'text-yellow-400' : 'text-gray-600'
+                                  }`}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <span
-                                key={i}
-                                className={`text-lg ${
-                                  i < review.rating ? 'text-yellow-400' : 'text-gray-600'
-                                }`}
-                              >
-                                ★
-                              </span>
-                            ))}
+                          
+                          <h5 className="font-medium text-white mb-2">{review.review_title || review.title || 'Başlıksız Review'}</h5>
+                          <p className="text-white/80 text-sm leading-relaxed">{review.review_text || review.content || 'İçerik bulunamadı'}</p>
+                          
+                          <div className="mt-3 text-xs text-white/60">
+                            {new Date(review.created_at).toLocaleDateString('tr-TR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
                           </div>
-                        </div>
-                        
-                        <h5 className="font-medium text-white mb-2">{review.title}</h5>
-                        <p className="text-white/80 text-sm leading-relaxed">{review.content}</p>
-                        
-                        <div className="mt-3 text-xs text-white/60">
-                          {new Date(review.created_at).toLocaleDateString('tr-TR', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {renderPagination(userReviews, "Reviews")}
+              </>
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">💭</div>
@@ -312,15 +396,19 @@ const UserProfile = () => {
         );
 
       case "Liked":
+        const paginatedLiked = getPaginatedData(likedBooks, "Liked");
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">❤️ Beğenilen Kitaplar ({likedBooks.length})</h3>
             {likedBooks.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {likedBooks.map((book, index) => (
-                  <BooksCard key={book.id || book._id || index} book={book} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {paginatedLiked.map((book, index) => (
+                    <BooksCard key={book.id || book._id || index} book={book} />
+                  ))}
+                </div>
+                {renderPagination(likedBooks, "Liked")}
+              </>
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">💔</div>
@@ -331,17 +419,21 @@ const UserProfile = () => {
         );
 
       case "Favorites":
+        const paginatedFavorites = getPaginatedData(favoriteBooks, "Favorites");
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">⭐ Favori Kitaplar ({favoriteBooks.length})</h3>
             {favoriteBooks.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {favoriteBooks.map((book, index) => (
-                  <div key={book.id || book._id || index} className="transform scale-50 origin-top-left">
-                    <BooksCard book={book} />
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {paginatedFavorites.map((book, index) => (
+                    <div key={book.id || book._id || index} className="transform scale-50 origin-top-left">
+                      <BooksCard book={book} />
+                    </div>
+                  ))}
+                </div>
+                {renderPagination(favoriteBooks, "Favorites")}
+              </>
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">⭐</div>
@@ -352,15 +444,19 @@ const UserProfile = () => {
         );
 
       case "Readlist":
+        const paginatedReadlist = getPaginatedData(readList, "Readlist");
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">📖 Okuma Listesi ({readList.length})</h3>
             {readList.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {readList.map((book, index) => (
-                  <BooksCard key={book.id || book._id || index} book={book} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {paginatedReadlist.map((book, index) => (
+                    <BooksCard key={book.id || book._id || index} book={book} />
+                  ))}
+                </div>
+                {renderPagination(readList, "Readlist")}
+              </>
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">📚</div>
@@ -377,8 +473,12 @@ const UserProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-        <div className="text-center">
+      <div 
+        className="relative min-h-screen bg-cover bg-center text-white flex items-center justify-center"
+        style={{ backgroundImage: "url('/images/explore.png')" }}
+      >
+        <div className="absolute inset-0 bg-black/70 z-0"></div>
+        <div className="relative z-10 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <p className="text-white">Profil yükleniyor...</p>
         </div>
@@ -388,8 +488,12 @@ const UserProfile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-        <div className="text-center text-white">
+      <div 
+        className="relative min-h-screen bg-cover bg-center text-white flex items-center justify-center"
+        style={{ backgroundImage: "url('/images/explore.png')" }}
+      >
+        <div className="absolute inset-0 bg-black/70 z-0"></div>
+        <div className="relative z-10 text-center text-white">
           <div className="text-6xl mb-4">😕</div>
           <h2 className="text-2xl font-bold mb-2">Kullanıcı Bulunamadı</h2>
           <p className="text-white/70">Bu kullanıcı mevcut değil veya profili gizli.</p>
@@ -399,8 +503,12 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-      <div className="max-w-6xl mx-auto px-6 py-8">
+    <div 
+      className="relative min-h-screen bg-cover bg-center text-white"
+      style={{ backgroundImage: "url('/images/explore.png')" }}
+    >
+      <div className="absolute inset-0 bg-black/70 z-0"></div>
+      <div className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-8">
         {/* Profil Header */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8">
           <div className="flex flex-col md:flex-row items-center gap-6">

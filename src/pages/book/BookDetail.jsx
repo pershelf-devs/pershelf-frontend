@@ -157,8 +157,8 @@ const BookDetail = () => {
   const fetchFromCoreBackend = useCallback((id) => {
     setLoading(true);
 
-    axios
-      .post("/api/books/get/id", parseInt(id), {
+    api
+      .post("/books/get/id", parseInt(id), {
         headers: {
           "Content-Type": "application/json",
         },
@@ -637,15 +637,15 @@ const BookDetail = () => {
               <button 
                 onClick={handleread_list}
                 className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 ${
-                  bookStatus?.read_list
+                  (bookStatus?.read_list || bookStatus?.readingList)
                     ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
                     : 'bg-blue-500/20 hover:bg-blue-500/30 text-white/80'
                 }`}
               >
-                <span className={`text-xl transition-transform duration-300 ${bookStatus?.read_list ? 'scale-110' : ''}`}>
-                  {bookStatus?.read_list ? '📖' : '➕'}
+                <span className={`text-xl transition-transform duration-300 ${(bookStatus?.read_list || bookStatus?.readingList) ? 'scale-110' : ''}`}>
+                  {(bookStatus?.read_list || bookStatus?.readingList) ? '📖' : '➕'}
                 </span>
-                {bookStatus?.read_list ? 'Okuma Listesinde' : 'Okuma Listesine Ekle'}
+                {(bookStatus?.read_list || bookStatus?.readingList) ? 'Okuma Listesinde' : 'Okuma Listesine Ekle'}
               </button>
               
               <button

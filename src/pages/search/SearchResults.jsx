@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import axios from "axios";
+import { api } from "../../api/api";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -27,7 +27,7 @@ const SearchResults = () => {
       console.log("🔍 Searching for:", searchQuery);
       
       // Core backend search endpoint'ini kullan
-      const response = await axios.post("/api/books/search", {
+      const response = await api.post("/books/search", {
         query: searchQuery,
         limit: 20
       }, {
