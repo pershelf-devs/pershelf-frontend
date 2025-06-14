@@ -14,14 +14,15 @@ import SocialPage from "../pages/social/SocialPage";
 import BookDetail from "../pages/book/BookDetail";
 // Wrapper  
 import PrivateRoute from "../components/PrivateRoute";
+import AuthGuard from "../components/AuthGuard";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<AuthGuard><Home /></AuthGuard>} />
       <Route path="/explore" element={<Explore />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<AuthGuard><Login /></AuthGuard>} />
+      <Route path="/register" element={<AuthGuard><Register /></AuthGuard>} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/category/:name" element={<Category />} />
       <Route path="/profile" element={<ProfilePage />} />
