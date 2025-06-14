@@ -1,11 +1,19 @@
 {
-  "login": "Giriş Yap",
-  "home": "Ana Sayfa",
+  "back_to_explore": "Keşfete dön",
+  "books":"Kitaplar",
+  "community": "Topluluk",
+  "error_loading_books": "Kitaplar yüklenirken hata oluştu",
   "explore": "Keşfet",
+  "days_ago": "gün önce",
+  "home": "Ana Sayfa",
+  "hours_ago": "saat önce",
+  "loading_books": "Kitaplar yükleniyor",
+  "login": "Giriş Yap",
   "myLists": "Listelerim",
   "minutes_ago": "dakika önce",
-  "hours_ago": "saat önce",
-  "days_ago": "gün önce",
-  "community": "Topluluk",
-  "signIn": "Giriş Yap"
+  "no_books_found_description": "No books found in the category yet:",
+  "signIn": "Giriş Yap",
+  "try_again": "Tekrar deneyiniz",
+  "unknown_author":"Bilinmeyen Yazar",
+  "unknown_title": "Bilinmeyen Başlık"
 }

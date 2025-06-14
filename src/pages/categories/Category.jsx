@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useTransition } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 
 const Category = () => {
+  const {t} = useTransition();
   const { name } = useParams(); // URL'den kategori adını al
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +78,7 @@ const Category = () => {
         {/* Gerçek resim */}
         <img
           src={imageUrl}
-          alt={book.title || "Book"}
+          alt={book.title || t("books")}
           className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
           onError={(e) => {
             // Gerçek resim yüklenemezse özel tasarım göster
@@ -101,7 +102,7 @@ const Category = () => {
           {/* Kitap başlığı */}
           <div className="relative z-10 flex-1 flex items-center justify-center">
             <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
-              {book.title || "Unknown Title"}
+              {book.title || t("unknown_title")}
             </h3>
           </div>
           
@@ -109,7 +110,7 @@ const Category = () => {
           <div className="relative z-10 mt-auto">
             <div className="h-px bg-white/30 mb-4"></div>
             <p className="text-sm opacity-90 font-medium text-center">
-              {book.author || "Unknown Author"}
+              {book.author || t("unknown_author")}
             </p>
           </div>
         </div>
@@ -130,10 +131,10 @@ const Category = () => {
         {/* Book Info */}
         <div>
           <h3 className="text-white font-semibold text-lg group-hover:text-blue-300 transition-colors line-clamp-2 mb-2">
-            {book.title || "Unknown Title"}
+            {book.title || t("unkown_title")}
           </h3>
           <p className="text-white/70 text-sm mb-2">
-            by {book.author || "Unknown Author"}
+            {book.author || t("unknown_author")}
           </p>
           
           {/* Genre Badge */}
@@ -173,10 +174,10 @@ const Category = () => {
         <div className="absolute inset-0 bg-black/70 z-0" />
         
         <div className="relative z-10 px-8 py-20">
-          <h1 className="text-4xl font-bold mb-4 capitalize">{name} Books</h1>
+          <h1 className="text-4xl font-bold mb-4 capitalize">{name} {t("books")}</h1>
           <div className="text-center py-12">
             <div className="text-4xl mb-4 animate-bounce">📚</div>
-            <p className="text-lg">Loading {name} books...</p>
+            <p className="text-lg">{name} {t("loading_books")}</p>
           </div>
         </div>
       </div>
@@ -194,7 +195,7 @@ const Category = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-8 py-20">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4 capitalize">{name} Books</h1>
+          <h1 className="text-4xl font-bold mb-4 capitalize">{name} {t("books")}</h1>
           <p className="text-white/70">
             {books.length > 0 
               ? `${books.length} books found in ${name} category`
@@ -207,13 +208,13 @@ const Category = () => {
         {error && (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">😞</div>
-            <h2 className="text-xl font-bold mb-2">Error Loading Books</h2>
+            <h2 className="text-xl font-bold mb-2">{t("error_loading_books")}</h2>
             <p className="text-white/70 mb-4">{error}</p>
             <button 
               onClick={() => fetchBooksByGenre(name)}
               className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-lg transition"
             >
-              🔄 Try Again
+              🔄 {t("try_again")}
             </button>
           </div>
         )}
@@ -224,7 +225,7 @@ const Category = () => {
             <div className="text-4xl mb-4">📚</div>
             <h2 className="text-xl font-bold mb-2">No Books Found</h2>
             <p className="text-white/70 mb-4">
-              No books found in the "{name}" category yet.
+              {t("no_books_found_description")} {name}
             </p>
           </div>
         )}
@@ -242,7 +243,7 @@ const Category = () => {
             to="/explore"
             className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition inline-block"
           >
-            ← Back to Explore
+            {t("back_to_explore")}
           </Link>
         </div>
       </div>
