@@ -66,18 +66,18 @@ const Login = () => {
 
       {/* Login kutusu */}
       <div className="relative z-10 bg-white/10 backdrop-blur-md text-white rounded-xl shadow-xl p-8 w-full max-w-md mx-4">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign in to Pershelf</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">{t("sign_in_to_pershelf_universe")}</h2>
 
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t("email")}
             className="bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none"
             onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder={t("password")}
             className="bg-white/20 placeholder-white/70 text-white px-4 py-2 rounded-md focus:outline-none"
             onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
           />
@@ -90,9 +90,9 @@ const Login = () => {
         </form>
 
         <p className="text-sm mt-4 text-center">
-          Don't have an account?{" "}
+          {t("dont_have_an_account")}
           <a href="/register" className="underline text-white/90 hover:text-white">
-            Register here
+            {t("register_here")}
           </a>
         </p>
       </div>
