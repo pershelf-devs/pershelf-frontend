@@ -235,9 +235,19 @@ const ProfilePage = () => {
       handleProfileManagement('fetchReadList');
     };
 
+    window.refreshProfileLikedBooks = () => {
+      handleProfileManagement('fetchLikedBooks');
+    };
+
+    window.refreshProfileFavoriteBooks = () => {
+      handleProfileManagement('fetchFavoriteBooks');
+    };
+
     // Cleanup
     return () => {
       delete window.refreshProfileReadList;
+      delete window.refreshProfileLikedBooks;
+      delete window.refreshProfileFavoriteBooks;
     };
   }, []);
 

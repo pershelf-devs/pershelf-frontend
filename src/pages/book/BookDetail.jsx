@@ -329,21 +329,15 @@ const BookDetail = () => {
         book_id: book.id || book._id
       });
 
-      if (response?.data?.code === "100") {
-        setBookStatus(prev => ({
-          ...prev,
-          like: true
-        }));
+      if (response?.data?.status?.code === "0") {
+        setBookStatus(response?.data?.userBookRelations?.[0]);
         toast.success("Kitabı beğendiniz! ❤️");
-      } else if (response?.data?.code === "101") {
-        setBookStatus(prev => ({
-          ...prev,
-          like: false
-        }));
-        toast.info("Beğeni kaldırıldı.");
-      } else {
-        toast.error("Error: " + (response?.data?.values ? response.data.values.join(', ') : 'Unknown error'));
-      }
+        
+        // ProfilePage'deki liked books listesini güncelle
+        if (window.refreshProfileLikedBooks) {
+          window.refreshProfileLikedBooks();
+        }
+      } 
     } catch (err) {
       toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
     }
@@ -368,21 +362,11 @@ const BookDetail = () => {
         book_id: book.id || book._id
       });
 
-      if (response?.data?.code === "100") {
-        setBookStatus(prev => ({
-          ...prev,
-          favorite: true
-        }));
+      if (response?.data?.status?.code === "0") {
+        setBookStatus(response?.data?.userBookRelations?.[0]);
         toast.success("Kitap favorilere eklendi! ⭐");
-      } else if (response?.data?.code === "101") {
-        setBookStatus(prev => ({
-          ...prev,
-          favorite: false
-        }));
-        toast.info("Kitap favorilerden çıkarıldı.");
-      }
+      } 
     } catch (err) {
-      console.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
       toast.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };
@@ -402,29 +386,9 @@ const BookDetail = () => {
 
       console.log("Reading List API Response:", response?.data);
 
-      if (response?.data?.code === "100") {
-        setBookStatus(prev => ({
-          ...prev,
-          read_list: true
-        }));
-        toast.success("Okuma listesine eklendi! 📚");
-      } else if (response?.data?.code === "101") {
-        setBookStatus(prev => ({
-          ...prev,
-          read_list: false
-        }));
-        toast.info("Okuma listesinden çıkarıldı. 📖");
-      } else {
-        // API başarılı ama farklı response code döndürüyor olabilir
-        console.log("Unexpected response code:", response?.data?.code);
-        // Başarılı olduğunu varsayarak state'i güncelle
-        const newread_listStatus = !bookStatus.read_list;
-        setBookStatus(prev => ({
-          ...prev,
-          read_list: newread_listStatus
-        }));
-        toast.success(newread_listStatus ? "Okuma listesine eklendi! 📚" : "Okuma listesinden çıkarıldı. 📖");
-      }
+      if (response?.data?.status?.code === "0") {
+        setBookStatus(response?.data?.userBookRelations?.[0]);
+      } 
     } catch (err) {
       console.error("Reading List Error:", err);
       toast.error("Okuma listesi işlemi başarısız. Lütfen tekrar deneyin.");
@@ -446,49 +410,17 @@ const BookDetail = () => {
 
       console.log("Mark as Read API Response:", response?.data);
 
-      if (response?.data?.code === "100") {
+      if (response?.data?.status?.code === "0") {
         // Kitap okundu olarak işaretlendi
-        setBookStatus(prev => ({
-          ...prev,
-          read: true,
-          read_list: false // Okuma listesinden otomatik kaldır
-        }));
+        setBookStatus(response?.data?.userBookRelations?.[0]);
         toast.success("Kitap okudum olarak işaretlendi ve okuma listesinden kaldırıldı! 👁️✅");
         
         // ProfilePage'deki readList'i güncelle
         if (window.refreshProfileReadList) {
           window.refreshProfileReadList();
         }
-      } else if (response?.data?.code === "101") {
-        // Okudum işareti kaldırıldı
-        setBookStatus(prev => ({
-          ...prev,
-          read: false
-        }));
-        toast.info("Okudum işareti kaldırıldı. 👁️");
-      } else {
-        // API başarılı ama farklı response code döndürüyor olabilir
-        console.log("Unexpected response code:", response?.data?.code);
-        const newReadStatus = !bookStatus.read;
-        setBookStatus(prev => ({
-          ...prev,
-          read: newReadStatus,
-          read_list: newReadStatus ? false : prev.read_list // Okundu ise okuma listesinden kaldır
-        }));
-        
-        if (newReadStatus) {
-          toast.success("Kitap okudum olarak işaretlendi ve okuma listesinden kaldırıldı! 👁️✅");
-          
-          // ProfilePage'deki readList'i güncelle
-          if (window.refreshProfileReadList) {
-            window.refreshProfileReadList();
-          }
-        } else {
-          toast.success("Okudum işareti kaldırıldı. 👁️");
-        }
-      }
+      } 
     } catch (err) {
-      console.error("Mark as Read Error:", err);
       toast.error("Okudum işaretleme başarısız. Lütfen tekrar deneyin.");
     }
   };
