@@ -15,8 +15,7 @@ const ProfilePage = () => {
   const [likedBooks, setLikedBooks] = useState([]);
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [readList, setReadList] = useState([]);
-
-  const bookList = ["1984", "The Book Thief", "Sapiens"];
+  const [userBooks, setUserBooks] = useState([]);
 
   const handleProfileManagement = async (action, data = null) => {
     switch (action) {
@@ -127,7 +126,21 @@ const ProfilePage = () => {
             setReadList(readListResp?.data?.books || []);
           } 
         break;
-      
+
+      case 'fetchUserBooks':
+        try {
+          const userBooksResp = await api.post('/books/get/user/read-books', currentUser?.id || currentUser?._id);
+          if (userBooksResp?.data?.status?.code === "0") {
+            setUserBooks(userBooksResp?.data?.books || []);
+          } else {
+            setUserBooks([]);
+          }
+        } catch (error) {
+          console.error("User books alınırken hata oluştu:", error);
+          setUserBooks([]);
+        }
+        break;
+
       case 'handleImageSelect':
         const file = data;
         if (file) {
@@ -215,6 +228,17 @@ const ProfilePage = () => {
     handleProfileManagement('fetchLikedBooks');
     handleProfileManagement('fetchFavoriteBooks');
     handleProfileManagement('fetchReadList');
+    handleProfileManagement('fetchUserBooks');
+
+    // Global refresh function for other components
+    window.refreshProfileReadList = () => {
+      handleProfileManagement('fetchReadList');
+    };
+
+    // Cleanup
+    return () => {
+      delete window.refreshProfileReadList;
+    };
   }, []);
 
   return (
@@ -324,7 +348,7 @@ const ProfilePage = () => {
           <h3 className="text-xl font-semibold mb-4">Favorite Books</h3>
           <div className="flex gap-4 flex-wrap">
             {favoriteBooks.map((book, index) => (
-              <BooksCard key={index} book={book} className="min-w-64" />
+              <BooksCard key={index} book={book} className="min-w-32" />
             ))}
           </div>
         </div>
@@ -348,17 +372,17 @@ const ProfilePage = () => {
         {/* Kitap Listesi */}
         {activeTab === "Books" && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {bookList.map((book, index) => (
-              <div
-                key={index}
-                className="h-36 bg-white text-black rounded-md flex items-center justify-center text-center text-sm font-medium shadow"
-              >
-                {book?.title}
+            {userBooks.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <div className="text-6xl mb-4">📖</div>
+                <h3 className="text-xl font-semibold mb-2">Henüz kitabınız yok</h3>
+                <p className="text-gray-400">Kitaplarınızı buradan görebilirsiniz.</p>
               </div>
-            ))}
-            <div className="h-36 border-2 border-dashed border-white rounded-md flex items-center justify-center text-2xl">
-              +
-            </div>
+            ) : (
+              userBooks.map((book, index) => (
+                <BooksCard key={index} book={book} />
+              ))
+            )}
           </div>
         )}
 

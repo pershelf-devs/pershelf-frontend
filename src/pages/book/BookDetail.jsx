@@ -18,7 +18,8 @@ const BookDetail = () => {
   const [bookStatus, setBookStatus] = useState({
     like: false,
     favorite: false,
-    read_list: false
+    read_list: false,
+    read: false
   });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewData, setReviewData] = useState({
@@ -292,6 +293,12 @@ const BookDetail = () => {
   };
 
   const toggleReviewForm = () => {
+    // Kitap okunmadan yorum yazılamaz
+    if (!bookStatus?.read && !showReviewForm) {
+      toast.warning("Bu kitap hakkında yorum yazmak için önce okumanız gerekiyor.");
+      return;
+    }
+
     setShowReviewForm(!showReviewForm);
     setReviewError(null);
     if (!showReviewForm) {
@@ -310,6 +317,12 @@ const BookDetail = () => {
     }
     if (!book) return;
 
+    // Kitap okunmadan beğenilemez
+    if (!bookStatus?.read) {
+      toast.warning("Bu kitabı beğenmek için önce okumanız gerekiyor.");
+      return;
+    }
+
     try {
       const response = await api.post('/user-book-relations/like', {
         user_id: currentUser.id || currentUser._id,
@@ -321,11 +334,13 @@ const BookDetail = () => {
           ...prev,
           like: true
         }));
+        toast.success("Kitabı beğendiniz! ❤️");
       } else if (response?.data?.code === "101") {
         setBookStatus(prev => ({
           ...prev,
           like: false
         }));
+        toast.info("Beğeni kaldırıldı.");
       } else {
         toast.error("Error: " + (response?.data?.values ? response.data.values.join(', ') : 'Unknown error'));
       }
@@ -341,6 +356,12 @@ const BookDetail = () => {
     }
     if (!book) return;
 
+    // Kitap okunmadan favoriye eklenemez
+    if (!bookStatus?.read) {
+      toast.warning("Bu kitabı favoriye eklemek için önce okumanız gerekiyor.");
+      return;
+    }
+
     try {
       const response = await api.post('/user-book-relations/favorite', {
         user_id: currentUser.id || currentUser._id,
@@ -352,14 +373,17 @@ const BookDetail = () => {
           ...prev,
           favorite: true
         }));
+        toast.success("Kitap favorilere eklendi! ⭐");
       } else if (response?.data?.code === "101") {
         setBookStatus(prev => ({
           ...prev,
           favorite: false
         }));
+        toast.info("Kitap favorilerden çıkarıldı.");
       }
     } catch (err) {
       console.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
+      toast.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };
 
@@ -383,13 +407,13 @@ const BookDetail = () => {
           ...prev,
           read_list: true
         }));
-        toast.success("Okuma listesine eklendi!");
+        toast.success("Okuma listesine eklendi! 📚");
       } else if (response?.data?.code === "101") {
         setBookStatus(prev => ({
           ...prev,
           read_list: false
         }));
-        toast.info("Okuma listesinden çıkarıldı.");
+        toast.info("Okuma listesinden çıkarıldı. 📖");
       } else {
         // API başarılı ama farklı response code döndürüyor olabilir
         console.log("Unexpected response code:", response?.data?.code);
@@ -399,11 +423,73 @@ const BookDetail = () => {
           ...prev,
           read_list: newread_listStatus
         }));
-        toast.success(newread_listStatus ? "Okuma listesine eklendi!" : "Okuma listesinden çıkarıldı.");
+        toast.success(newread_listStatus ? "Okuma listesine eklendi! 📚" : "Okuma listesinden çıkarıldı. 📖");
       }
     } catch (err) {
       console.error("Reading List Error:", err);
       toast.error("Okuma listesi işlemi başarısız. Lütfen tekrar deneyin.");
+    }
+  };
+
+  const handleRead = async () => {
+    if (!currentUser) {
+      toast.info("Lütfen okudum işaretlemek için giriş yapın.");
+      return;
+    }
+    if (!book) return;
+
+    try {
+      const response = await api.post('/user-book-relations/set-as-read', {
+        user_id: currentUser.id || currentUser._id,
+        book_id: book.id || book._id
+      });
+
+      console.log("Mark as Read API Response:", response?.data);
+
+      if (response?.data?.code === "100") {
+        // Kitap okundu olarak işaretlendi
+        setBookStatus(prev => ({
+          ...prev,
+          read: true,
+          read_list: false // Okuma listesinden otomatik kaldır
+        }));
+        toast.success("Kitap okudum olarak işaretlendi ve okuma listesinden kaldırıldı! 👁️✅");
+        
+        // ProfilePage'deki readList'i güncelle
+        if (window.refreshProfileReadList) {
+          window.refreshProfileReadList();
+        }
+      } else if (response?.data?.code === "101") {
+        // Okudum işareti kaldırıldı
+        setBookStatus(prev => ({
+          ...prev,
+          read: false
+        }));
+        toast.info("Okudum işareti kaldırıldı. 👁️");
+      } else {
+        // API başarılı ama farklı response code döndürüyor olabilir
+        console.log("Unexpected response code:", response?.data?.code);
+        const newReadStatus = !bookStatus.read;
+        setBookStatus(prev => ({
+          ...prev,
+          read: newReadStatus,
+          read_list: newReadStatus ? false : prev.read_list // Okundu ise okuma listesinden kaldır
+        }));
+        
+        if (newReadStatus) {
+          toast.success("Kitap okudum olarak işaretlendi ve okuma listesinden kaldırıldı! 👁️✅");
+          
+          // ProfilePage'deki readList'i güncelle
+          if (window.refreshProfileReadList) {
+            window.refreshProfileReadList();
+          }
+        } else {
+          toast.success("Okudum işareti kaldırıldı. 👁️");
+        }
+      }
+    } catch (err) {
+      console.error("Mark as Read Error:", err);
+      toast.error("Okudum işaretleme başarısız. Lütfen tekrar deneyin.");
     }
   };
 
@@ -488,7 +574,29 @@ const BookDetail = () => {
       <div className="absolute inset-0 bg-black/70 z-0" />
       <div className="relative z-10 py-20 px-6 max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row gap-10 items-start">
-          {renderBookCover(book)}
+          <div className="flex flex-col items-center gap-4">
+            {renderBookCover(book)}
+            
+            {/* Mark as Read Button - Below Book Cover */}
+            <button 
+              onClick={handleRead}
+              className={`w-48 px-4 py-3 rounded-full transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 hover:scale-105 ${
+                bookStatus?.read
+                  ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                  : 'bg-green-500/20 hover:bg-green-500/30 text-white/80'
+              }`}
+            >
+              <svg 
+                className={`w-5 h-5 transition-transform duration-300 ${bookStatus?.read ? 'scale-110' : ''}`}
+                fill="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+              {bookStatus?.read ? 'Okundu' : 'Okudum'}
+            </button>
+          </div>
+          
           <div className="flex-1 space-y-4">
             <h1 className="text-3xl font-bold">{book.title || "Unknown Title"}</h1>
             <p className="text-white/70 text-sm">
@@ -553,11 +661,15 @@ const BookDetail = () => {
 
             <div className="flex gap-4 mt-6">
               <button
-                className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 ${bookStatus?.like
-                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
-                  : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
-                  }`}
+                className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 ${
+                  !bookStatus?.read 
+                    ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' 
+                    : bookStatus?.like
+                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
+                      : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+                }`}
                 onClick={handleLike}
+                disabled={!bookStatus?.read}
               >
                 <span className={`text-xl transition-transform duration-300 ${bookStatus?.like ? 'scale-110' : ''}`}>
                   {bookStatus?.like ? '❤️' : '🤍'}
@@ -567,10 +679,14 @@ const BookDetail = () => {
               {/* Add to Favorite */}
               <button
                 onClick={handleFavorite}
-                className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 ${bookStatus?.favorite
-                    ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
-                    : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20 hover:shadow-lg hover:shadow-purple-500/20'
-                  }`}
+                disabled={!bookStatus?.read}
+                className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 ${
+                  !bookStatus?.read
+                    ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                    : bookStatus?.favorite
+                      ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                      : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20 hover:shadow-lg hover:shadow-purple-500/20'
+                }`}
               >
                 <span className={`text-xl transition-all duration-300 ${bookStatus?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
                   {bookStatus?.favorite ? '⭐' : '☆'}
@@ -593,9 +709,15 @@ const BookDetail = () => {
                 </span>
                 {bookStatus?.read_list ? 'Okuma Listesinde' : 'Okuma Listesine Ekle'}
               </button>
+              
               <button
                 onClick={toggleReviewForm}
-                className="bg-green-500/20 hover:bg-green-500/30 px-4 py-2 rounded-full transition cursor-pointer"
+                disabled={!bookStatus?.read}
+                className={`px-4 py-2 rounded-full transition cursor-pointer ${
+                  !bookStatus?.read
+                    ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-500/20 hover:bg-green-500/30'
+                }`}
               >
                 ✍️ Write Review
               </button>
