@@ -14,6 +14,7 @@ const ProfilePage = () => {
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [likedBooks, setLikedBooks] = useState([]);
   const [favoriteBooks, setFavoriteBooks] = useState([]);
+  const [readList, setReadList] = useState([]);
 
   const bookList = ["1984", "The Book Thief", "Sapiens"];
 
@@ -119,6 +120,14 @@ const ProfilePage = () => {
         }
         break;
 
+      case 'fetchReadList':
+          const readListResp = await api.post('/books/get/user/read-list', currentUser?.id || currentUser?._id);
+          
+          if (readListResp?.data?.status?.code === "0") {
+            setReadList(readListResp?.data?.books || []);
+          } 
+        break;
+      
       case 'handleImageSelect':
         const file = data;
         if (file) {
@@ -205,6 +214,7 @@ const ProfilePage = () => {
     handleProfileManagement('fetchReviews');
     handleProfileManagement('fetchLikedBooks');
     handleProfileManagement('fetchFavoriteBooks');
+    handleProfileManagement('fetchReadList');
   }, []);
 
   return (
@@ -360,6 +370,7 @@ const ProfilePage = () => {
           </div>
         )}
 
+        
         {/* Yorumlar */}
         {activeTab === "Reviews" && (
           <div className="mt-4">
@@ -437,7 +448,25 @@ const ProfilePage = () => {
             )}
           </div>
         )}
-      </div>
+
+        {/* Okuma Listesi */}
+        {activeTab === "Readlist" && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {console.log("Current readList state:", readList)}
+            {readList.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <div className="text-6xl mb-4">📚</div>
+                <h3 className="text-xl font-semibold mb-2">Okuma listesi boş</h3>
+                <p className="text-gray-400">Kitap detay sayfalarından okuma listesine kitap ekleyebilirsiniz.</p>
+              </div>
+            ) : (
+              readList.map((book, index) => (
+                <BooksCard key={index} book={book} />
+              ))
+            )}
+          </div>
+        )}
+        </div>
     </div>
   );
 };

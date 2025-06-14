@@ -17,7 +17,8 @@ const BookDetail = () => {
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [bookStatus, setBookStatus] = useState({
     like: false,
-    favorite: false
+    favorite: false,
+    read_list: false
   });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewData, setReviewData] = useState({
@@ -317,16 +318,16 @@ const BookDetail = () => {
 
       if (response?.data?.code === "100") {
         setBookStatus(prev => ({
-          like: true,
-          favorite: prev.favorite
+          ...prev,
+          like: true
         }));
       } else if (response?.data?.code === "101") {
         setBookStatus(prev => ({
-          like: false,
-          favorite: prev.favorite
+          ...prev,
+          like: false
         }));
       } else {
-        toast.error("Error: " + (response.values ? response.values.join(', ') : 'Unknown error'));
+        toast.error("Error: " + (response?.data?.values ? response.data.values.join(', ') : 'Unknown error'));
       }
     } catch (err) {
       toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
@@ -362,6 +363,50 @@ const BookDetail = () => {
     }
   };
 
+  const handleread_list = async () => {
+    if (!currentUser) {
+      toast.info("Lütfen okuma listesine eklemek için giriş yapın.");
+      return;
+    }
+    if (!book) return;
+
+    try {
+      const response = await api.post('/user-book-relations/add-to-read-list', {
+        user_id: currentUser.id || currentUser._id,
+        book_id: book.id || book._id
+      });
+
+      console.log("Reading List API Response:", response?.data);
+
+      if (response?.data?.code === "100") {
+        setBookStatus(prev => ({
+          ...prev,
+          read_list: true
+        }));
+        toast.success("Okuma listesine eklendi!");
+      } else if (response?.data?.code === "101") {
+        setBookStatus(prev => ({
+          ...prev,
+          read_list: false
+        }));
+        toast.info("Okuma listesinden çıkarıldı.");
+      } else {
+        // API başarılı ama farklı response code döndürüyor olabilir
+        console.log("Unexpected response code:", response?.data?.code);
+        // Başarılı olduğunu varsayarak state'i güncelle
+        const newread_listStatus = !bookStatus.read_list;
+        setBookStatus(prev => ({
+          ...prev,
+          read_list: newread_listStatus
+        }));
+        toast.success(newread_listStatus ? "Okuma listesine eklendi!" : "Okuma listesinden çıkarıldı.");
+      }
+    } catch (err) {
+      console.error("Reading List Error:", err);
+      toast.error("Okuma listesi işlemi başarısız. Lütfen tekrar deneyin.");
+    }
+  };
+
   useEffect(() => {
     if (!id) {
       setError("No book ID provided in URL parameters");
@@ -374,18 +419,20 @@ const BookDetail = () => {
   }, [id, fetchFromCoreBackend]);
 
   useEffect(() => {
+    if (!currentUser || !book || !(book.id || book._id)) {
+      return; // User veya book yüklenmemişse çıkış yap
+    }
+
     api.post('/user-book-relations/get/user-book-relation', {
       user_id: currentUser?.id || currentUser?._id,
       book_id: book?.id || book?._id
     }).then((res) => {
-      console.log()
       if (res?.data?.status?.code === "0") {
-        setBookStatus(prev => ({
-          like: res?.data?.userBookRelations?.[0]?.like,
-          favorite: res?.data?.userBookRelations?.[0]?.favorite
-        }));
+        setBookStatus(res?.data?.userBookRelations?.[0]);
       }
-    })
+    }).catch((error) => {
+      console.error("User-book relation alınırken hata:", error);
+    });
   }, [currentUser, book]);
 
   if (loading) {
@@ -533,8 +580,18 @@ const BookDetail = () => {
                 </span>
               </button>
               {/* Add to Reading List */}
-              <button className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-full transition cursor-pointer">
-                ➕ Add to Reading List
+              <button 
+                onClick={handleread_list}
+                className={`px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 ${
+                  bookStatus?.read_list
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                    : 'bg-blue-500/20 hover:bg-blue-500/30 text-white/80'
+                }`}
+              >
+                <span className={`text-xl transition-transform duration-300 ${bookStatus?.read_list ? 'scale-110' : ''}`}>
+                  {bookStatus?.read_list ? '📖' : '➕'}
+                </span>
+                {bookStatus?.read_list ? 'Okuma Listesinde' : 'Okuma Listesine Ekle'}
               </button>
               <button
                 onClick={toggleReviewForm}
