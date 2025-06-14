@@ -1,11 +1,19 @@
 {
-  "login": "Login",
-  "home": "Home",
+  "back_to_explore": "Back to explore",
+  "books": "Books",
+  "community": "Community",
+  "error_loading_books": "Error loading books",
   "explore": "Explore",
+  "days_ago": "days ago",
+  "home": "Home",
+  "hours_ago": "hours ago",
+  "loading_books": "Loading books",
+  "login": "Login",
   "myLists": "My Lists",
   "minutes_ago": "minutes ago",
-  "hours_ago": "hours ago",
-  "days_ago": "days ago",
-  "community": "Community",
-  "signIn": "Sign In"
+  "no_books_found_description": "No books found in the category yet:",
+  "signIn": "Sign In",
+  "try_again": "Try again",
+  "unknown_author":"Unknown Author",
+  "unknown_title": "Unknown Title"
 }
