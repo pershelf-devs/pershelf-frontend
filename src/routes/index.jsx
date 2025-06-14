@@ -9,6 +9,7 @@ import Dashboard from "../pages/dashboard/Dashboard";
 import Explore from "../pages/explore/Explore";
 import Category from "../pages/categories/Category";
 import ProfilePage from "../pages/profile/ProfilePage";
+import UserProfile from "../pages/profile/UserProfile";
 import SettingsPage from "../pages/profile/Settings";
 import SocialPage from "../pages/social/SocialPage";
 import BookDetail from "../pages/book/BookDetail";
@@ -26,6 +27,7 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/category/:name" element={<Category />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/user/profile" element={<UserProfile />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/social" element={<SocialPage />} />
       <Route path="/book/details" element={<BookDetail />} />

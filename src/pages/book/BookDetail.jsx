@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
@@ -59,29 +59,34 @@ const BookDetail = () => {
     <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          {review?.user_image_base64 ? (
-            <img
-              src={review?.user_image_base64}
-              alt={review?.username}
-              className="w-10 h-10 rounded-full object-cover border border-white/20"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
-              <span className="text-lg">👤</span>
+          <Link 
+            to={`/user/profile?id=${review?.user_id}`}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            {review?.user_image_base64 ? (
+              <img
+                src={review?.user_image_base64}
+                alt={review?.username}
+                className="w-10 h-10 rounded-full object-cover border border-white/20"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                <span className="text-lg">👤</span>
+              </div>
+            )}
+            <div>
+              <h4 className="font-semibold hover:text-blue-300 transition-colors">{review?.username}</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400">
+                  {"★".repeat(Math.floor(review?.rating))}
+                  {"☆".repeat(5 - Math.floor(review?.rating))}
+                </span>
+                <span className="text-white/60 text-sm">
+                  {formatDate(review?.created_at)}
+                </span>
+              </div>
             </div>
-          )}
-          <div>
-            <h4 className="font-semibold">{review?.username}</h4>
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-400">
-                {"★".repeat(Math.floor(review?.rating))}
-                {"☆".repeat(5 - Math.floor(review?.rating))}
-              </span>
-              <span className="text-white/60 text-sm">
-                {formatDate(review?.created_at)}
-              </span>
-            </div>
-          </div>
+          </Link>
         </div>
       </div>
 
@@ -387,6 +392,7 @@ const BookDetail = () => {
       console.log("Reading List API Response:", response?.data);
 
       if (response?.data?.status?.code === "0") {
+        console.log("Reading List API Response:", response?.data);
         setBookStatus(response?.data?.userBookRelations?.[0]);
       } 
     } catch (err) {

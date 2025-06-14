@@ -404,7 +404,7 @@ const ProfilePage = () => {
           </div>
         )}
 
-        
+
         {/* Yorumlar */}
         {activeTab === "Reviews" && (
           <div className="mt-4">
@@ -450,12 +450,12 @@ const ProfilePage = () => {
                         {/* Review Başlığı */}
                         <h4 className="text-md font-semibold text-[#f8f8f2] mb-2">
                           {review.review_title || "Review Başlığı Yok"}
-                        </h4>
+                    </h4>
 
                         {/* Review Metni */}
                         <p className="text-sm text-gray-300 mb-3 leading-relaxed">
-                          {review.review_text || "Yorum Yok"}
-                        </p>
+                      {review.review_text || "Yorum Yok"}
+                    </p>
 
                         {/* Rating ve Tarih */}
                         <div className="flex items-center gap-4">
@@ -466,13 +466,13 @@ const ProfilePage = () => {
                             </span>
                             <span className="text-xs text-gray-400 ml-1">
                               ({review.rating || 0}/5)
-                            </span>
+                      </span>
                           </div>
-                          <span className="text-xs text-gray-400">
-                            {review.created_at
-                              ? new Date(review.created_at).toLocaleDateString("tr-TR")
-                              : "Tarih Yok"}
-                          </span>
+                      <span className="text-xs text-gray-400">
+                        {review.created_at
+                          ? new Date(review.created_at).toLocaleDateString("tr-TR")
+                          : "Tarih Yok"}
+                      </span>
                         </div>
                       </div>
                     </div>
@@ -500,7 +500,7 @@ const ProfilePage = () => {
             )}
           </div>
         )}
-        </div>
+      </div>
     </div>
   );
 };
