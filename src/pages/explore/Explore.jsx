@@ -227,27 +227,25 @@ const Explore = () => {
         book_id: bookId
       });
 
-      if (response?.data?.code === "100") {
-        setBookStatuses(prev => ({
-          ...prev,
-          [bookId]: {
-            ...prev[bookId],
-            like: true
+      if (response?.data?.status?.code === "0") {
+        // API'den gelen güncel durumu kullan
+        if (response?.data?.userBookRelations?.[0]) {
+          setBookStatuses(prev => ({
+            ...prev,
+            [bookId]: {
+              ...prev[bookId],
+              like: response.data.userBookRelations[0].like,
+              favorite: response.data.userBookRelations[0].favorite
+            }
+          }));
+          
+          if (response.data.userBookRelations[0].like) {
+            toast.success("❤️ Kitap beğenildi!");
+          } else {
+            toast.info("🤍 Beğeni kaldırıldı!");
           }
-        }));
-        toast.success("Kitap beğenildi!");
-      } else if (response?.data?.code === "101") {
-        setBookStatuses(prev => ({
-          ...prev,
-          [bookId]: {
-            ...prev[bookId],
-            like: false
-          }
-        }));
-        toast.info("Beğeni kaldırıldı.");
-      } else {
-        toast.error("Error: " + (response.values ? response.values.join(', ') : 'Unknown error'));
-      }
+        }
+      } 
     } catch (err) {
       toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
     }
@@ -270,27 +268,26 @@ const Explore = () => {
         book_id: bookId
       });
 
-      if (response?.data?.code === "100") {
-        setBookStatuses(prev => ({
-          ...prev,
-          [bookId]: {
-            ...prev[bookId],
-            favorite: true
+      if (response?.data?.status?.code === "0") {
+        // API'den gelen güncel durumu kullan
+        if (response?.data?.userBookRelations?.[0]) {
+          setBookStatuses(prev => ({
+            ...prev,
+            [bookId]: {
+              ...prev[bookId],
+              like: response.data.userBookRelations[0].like,
+              favorite: response.data.userBookRelations[0].favorite
+            }
+          }));
+          
+          if (response.data.userBookRelations[0].favorite) {
+            toast.success("⭐ Favorilere eklendi!");
+          } else {
+            toast.info("☆ Favorilerden çıkarıldı!");
           }
-        }));
-        toast.success("Favorilere eklendi!");
-      } else if (response?.data?.code === "101") {
-        setBookStatuses(prev => ({
-          ...prev,
-          [bookId]: {
-            ...prev[bookId],
-            favorite: false
-          }
-        }));
-        toast.info("Favorilerden çıkarıldı.");
-      }
+        }
+      } 
     } catch (err) {
-      console.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
       toast.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };
@@ -394,13 +391,13 @@ const Explore = () => {
           {/* Add to Favorite */}
           <button
             onClick={(e) => handleFavorite(book, e)}
-            className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 ${bookStatuses[book.id || book._id]?.favorite
+            className={`group px-4 py-2 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 hover:scale-105 min-w-[140px] ${bookStatuses[book.id || book._id]?.favorite
                 ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
                 : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20 hover:shadow-lg hover:shadow-purple-500/20'
               }`}
           >
           <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
-            {bookStatuses[book.id || book._id]?.favorite ? '⭐' : '☆'}
+            {bookStatuses[book.id || book._id]?.favorite ? '★' : '☆'}
             </span>
             <span className={`group-hover:text-white/90 ${bookStatuses[book.id || book._id]?.favorite ? 'text-yellow-300' : ''}`}>
               {bookStatuses[book.id || book._id]?.favorite ? 'Favorilerde' : 'Favorilere Ekle'}
@@ -548,7 +545,7 @@ const Explore = () => {
                           </button>
                           
                           <button
-                            className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
+                            className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer min-w-[44px] ${
                               bookStatuses[book.id || book._id]?.favorite
                                 ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
                                 : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
@@ -557,7 +554,7 @@ const Explore = () => {
                             title={bookStatuses[book.id || book._id]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
                           >
                         <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
-                          {bookStatuses[book.id || book._id]?.favorite ? '⭐' : '☆'}
+                          {bookStatuses[book.id || book._id]?.favorite ? '★' : '☆'}
                         </span>
                           </button>
                         </div>
