@@ -35,7 +35,68 @@ const ProfilePage = () => {
         try {
           const response = await api.post(`/reviews/get/by-user`, currentUser?.id);
           if (response?.data?.status?.code === "0") {
-            setUserReviews(response.data.reviews || []);
+            const reviewsData = response.data.reviews || [];
+            
+            // Benzersiz book_id'leri topla
+            const bookIds = [...new Set(reviewsData.map(review => review.book_id))];
+            
+            // Kitap bilgilerini çek
+            if (bookIds.length > 0) {
+              try {
+                const bookPromises = bookIds.map(bookId => 
+                  axios.post("/api/books/get/id", parseInt(bookId), {
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  })
+                    .then(res => {
+                      const bookData = res.data?.books?.[0] || res.data;
+                      return {
+                        id: bookId,
+                        title: bookData?.title || `Book ${bookId}`,
+                        author: bookData?.author || 'Unknown Author',
+                        image_url: bookData?.image_url || bookData?.cover_image || bookData?.image,
+                        image_base64: bookData?.image_base64
+                      };
+                    })
+                    .catch(err => {
+                      console.error(`❌ Book ${bookId} fetch error:`, err);
+                      return {
+                        id: bookId,
+                        title: `Book ${bookId}`,
+                        author: 'Unknown Author',
+                        image_url: null,
+                        image_base64: null
+                      };
+                    })
+                );
+                
+                const booksData = await Promise.all(bookPromises);
+                
+                // Book bilgilerini map haline getir
+                const booksMap = booksData.reduce((acc, book) => {
+                  acc[book.id] = book;
+                  return acc;
+                }, {});
+                
+                // Review'lara book bilgilerini ekle
+                const reviewsWithBooks = reviewsData.map(review => ({
+                  ...review,
+                  book_title: booksMap[review.book_id]?.title || `Book ${review.book_id}`,
+                  book_author: booksMap[review.book_id]?.author || 'Unknown Author',
+                  book_image: booksMap[review.book_id]?.image_base64 || booksMap[review.book_id]?.image_url
+                }));
+                
+                setUserReviews(reviewsWithBooks);
+                
+              } catch (bookFetchError) {
+                console.error("❌ Kitap bilgileri alınırken hata:", bookFetchError);
+                // Hata durumunda review'ları kitap bilgisi olmadan göster
+                setUserReviews(reviewsData);
+              }
+            } else {
+              setUserReviews(reviewsData);
+            }
           }
         } catch (err) {
           setUserReviews([]);
@@ -313,21 +374,62 @@ const ProfilePage = () => {
                     key={review.id}
                     className="p-4 bg-[#3b2316] rounded-md shadow-md"
                   >
-                    <h4 className="text-md font-semibold">
-                      {review.review_title || "Kitap Başlığı Yok"}
-                    </h4>
-                    <p className="text-sm text-gray-300 mt-1">
-                      {review.review_text || "Yorum Yok"}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs bg-[#a65b38] text-white rounded-full px-3 py-1">
-                        {review.rating} / 5
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {review.created_at
-                          ? new Date(review.created_at).toLocaleDateString("tr-TR")
-                          : "Tarih Yok"}
-                      </span>
+                    <div className="flex gap-4">
+                      {/* Kitap Kapağı */}
+                      <div className="w-16 h-24 rounded overflow-hidden flex-shrink-0">
+                        {review.book_image ? (
+                          <img
+                            src={review.book_image}
+                            alt={review.book_title || "Book"}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-bold text-center p-1">
+                            {review.book_title || "?"}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Review İçeriği */}
+                      <div className="flex-1">
+                        {/* Kitap Bilgileri */}
+                        <div className="mb-3">
+                          <h3 className="font-semibold text-lg text-white">
+                            {review.book_title || "Kitap Başlığı Yok"}
+                          </h3>
+                          <p className="text-sm text-gray-300">
+                            by {review.book_author || "Unknown Author"}
+                          </p>
+                        </div>
+
+                        {/* Review Başlığı */}
+                        <h4 className="text-md font-semibold text-[#f8f8f2] mb-2">
+                          {review.review_title || "Review Başlığı Yok"}
+                        </h4>
+
+                        {/* Review Metni */}
+                        <p className="text-sm text-gray-300 mb-3 leading-relaxed">
+                          {review.review_text || "Yorum Yok"}
+                        </p>
+
+                        {/* Rating ve Tarih */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1">
+                            <span className="text-yellow-400 text-sm">
+                              {"★".repeat(Math.floor(review.rating || 0))}
+                              {"☆".repeat(5 - Math.floor(review.rating || 0))}
+                            </span>
+                            <span className="text-xs text-gray-400 ml-1">
+                              ({review.rating || 0}/5)
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-400">
+                            {review.created_at
+                              ? new Date(review.created_at).toLocaleDateString("tr-TR")
+                              : "Tarih Yok"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -195,7 +195,58 @@ const BookDetail = () => {
       const response = await api.post("/reviews/get/book-reviews", parseInt(bookId));
 
       if (response?.data?.status?.code === "0") {
-        setReviews(response.data.reviews || []);
+        const reviewsData = response.data.reviews || [];
+        
+        // Benzersiz user_id'leri topla
+        const userIds = [...new Set(reviewsData.map(review => review.user_id))];
+        
+        // Kullanıcı bilgilerini çek
+        if (userIds.length > 0) {
+          try {
+            const userPromises = userIds.map(userId => 
+              api.post("/users/get/id", userId)
+                .then(res => {
+                  return {
+                    id: userId,
+                    username: res.data?.users?.[0]?.username || res.data?.user?.username || `User ${userId}`,
+                    user_image_base64: res.data?.users?.[0]?.image_base64 || res.data?.user?.image_base64
+                  };
+                })
+                .catch(err => {
+                  console.error(`❌ User ${userId} fetch error:`, err);
+                  return {
+                    id: userId,
+                    username: `User ${userId}`,
+                    user_image_base64: null
+                  };
+                })
+            );
+            
+            const usersData = await Promise.all(userPromises);
+            
+            // User bilgilerini map haline getir
+            const usersMap = usersData.reduce((acc, user) => {
+              acc[user.id] = user;
+              return acc;
+            }, {});
+            
+            // Review'lara username ekle
+            const reviewsWithUsers = reviewsData.map(review => ({
+              ...review,
+              username: usersMap[review.user_id]?.username || `User ${review.user_id}`,
+              user_image_base64: usersMap[review.user_id]?.user_image_base64
+            }));
+            
+            setReviews(reviewsWithUsers);
+            
+          } catch (userFetchError) {
+            console.error("❌ Kullanıcı bilgileri alınırken hata:", userFetchError);
+            // Hata durumunda review'ları user bilgisi olmadan göster
+            setReviews(reviewsData);
+          }
+        } else {
+          setReviews(reviewsData);
+        }
       }
     } catch (error) {
       console.error("Yorumlar yüklenirken hata oluştu:", error);
