@@ -83,7 +83,7 @@ const Category = () => {
       return (
         <div className="text-center py-12">
           <div className="text-4xl mb-4">📚</div>
-          <h2 className="text-xl font-bold mb-2">No Books Found</h2>
+          <h2 className="text-xl font-bold mb-2">{t("no_books_found")}</h2>
           <p className="text-white/70 mb-4">
             {t("no_books_found_description")} {name}
           </p>
