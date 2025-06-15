@@ -116,15 +116,11 @@ const Explore = () => {
     }
 
     try {
-      // Backend'ten mevcut genre'ları çek
-      const res = await api.get("/books/genres", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // Fetch genres from the API
+      const res = await api.post("/books/genres");
+      console.log(res);
 
       let genres = [];
-      
       if (res.data?.status?.code === "0" && Array.isArray(res.data.genres)) {
         genres = res.data.genres;
       } else if (Array.isArray(res.data)) {
