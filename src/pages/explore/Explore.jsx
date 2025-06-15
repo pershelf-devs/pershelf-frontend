@@ -218,7 +218,7 @@ const Explore = () => {
     event?.stopPropagation();
     
     if (!currentUser) {
-      toast.info("Please login to like this book.");
+      toast.info(t("please_login_to_like"));
       return;
     }
     if (!book) return;
@@ -228,7 +228,7 @@ const Explore = () => {
     
     // Hierarchy check: Must read before liking
     if (!isRead) {
-      toast.warning("📖 Önce kitabı okumalısınız!");
+      toast.warning(t("must_read_first_like"));
       return;
     }
 
@@ -253,9 +253,9 @@ const Explore = () => {
           }));
           
           if (response.data.userBookRelations[0].like) {
-            toast.success("❤️ Kitap beğenildi!");
+            toast.success(t("book_liked"));
           } else {
-            toast.info("🤍 Beğeni kaldırıldı!");
+            toast.info(t("like_removed"));
           }
 
           // Real-time updates for ProfilePage
@@ -265,7 +265,7 @@ const Explore = () => {
         }
       } 
     } catch (err) {
-      toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
+      toast.error(t("like_operation_failed"));
     }
   };
 
@@ -274,7 +274,7 @@ const Explore = () => {
     event?.stopPropagation();
     
     if (!currentUser) {
-      toast.info("Lütfen favori eklemek için giriş yapın.");
+      toast.info(t("please_login_to_favorite"));
       return;
     }
     if (!book) return;
@@ -284,7 +284,7 @@ const Explore = () => {
     
     // Hierarchy check: Must read before favoriting
     if (!isRead) {
-      toast.warning("📖 Önce kitabı okumalısınız!");
+      toast.warning(t("must_read_first_favorite"));
       return;
     }
 
@@ -309,9 +309,9 @@ const Explore = () => {
           }));
           
           if (response.data.userBookRelations[0].favorite) {
-            toast.success("⭐ Favorilere eklendi!");
+            toast.success(t("added_to_favorites"));
           } else {
-            toast.info("☆ Favorilerden çıkarıldı!");
+            toast.info(t("removed_from_favorites"));
           }
 
           // Real-time updates for ProfilePage
@@ -321,7 +321,7 @@ const Explore = () => {
         }
       } 
     } catch (err) {
-      toast.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
+      toast.error(t("favorite_operation_failed"));
     }
   };
 
@@ -330,7 +330,7 @@ const Explore = () => {
     event?.stopPropagation();
     
     if (!currentUser) {
-      toast.info("Lütfen giriş yapın.");
+      toast.info(t("please_login_to_read"));
       return;
     }
     if (!book) return;
@@ -356,9 +356,9 @@ const Explore = () => {
           }));
           
           if (response.data.userBookRelations[0].read) {
-            toast.success("👁️✅ Kitap okundu olarak işaretlendi!");
+            toast.success(t("marked_as_read_success"));
           } else {
-            toast.info("👁️ Okudum işareti kaldırıldı!");
+            toast.info(t("read_mark_removed"));
           }
 
           // Real-time updates for ProfilePage
@@ -368,7 +368,7 @@ const Explore = () => {
         }
       } 
     } catch (err) {
-      toast.error("İşlem başarısız. Lütfen tekrar deneyin.");
+      toast.error(t("read_operation_failed"));
     }
   };
 
@@ -404,7 +404,7 @@ const Explore = () => {
         {/* Gerçek resim */}
         <img
           src={imageUrl}
-          alt={book.title || "Book"}
+          alt={book.title || t("book")}
           className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
           onError={(e) => {
             // Gerçek resim yüklenemezse özel tasarım göster
@@ -428,7 +428,7 @@ const Explore = () => {
           {/* Kitap başlığı */}
           <div className="relative z-10 flex-1 flex items-center justify-center">
             <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
-              {book.title || "Unknown Title"}
+              {book.title || t("unknown_title")}
             </h3>
           </div>
           
@@ -436,13 +436,13 @@ const Explore = () => {
           <div className="relative z-10 mt-auto">
             <div className="h-px bg-white/30 mb-4"></div>
             <p className="text-sm opacity-90 font-medium text-center">
-              {book.author || "Unknown Author"}
+              {book.author || t("unknown_author")}
             </p>
           </div>
         </div>
       </div>
     );
-  }, [getBookImage]);
+  }, [getBookImage, t]);
 
   const renderSearchBookCard = (book) => {
     const imageUrl = getBookImage(book);
@@ -463,14 +463,14 @@ const Explore = () => {
               : 'bg-gray-500/30 text-gray-400 hover:bg-gray-500/50'
               }`}
             onClick={(e) => handleRead(book, e)}
-            title={bookStatuses[bookId]?.read ? 'Okudum işaretini kaldır' : 'Okudum olarak işaretle'}
+            title={bookStatuses[bookId]?.read ? t("remove_read_mark") : t("mark_as_read_button")}
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
             </svg>
             {bookStatuses[bookId]?.read && (
-              <span className="text-xs font-medium">Okundu</span>
+              <span className="text-xs font-medium">{t("read_status")}</span>
             )}
           </button>
         </div>
@@ -485,7 +485,7 @@ const Explore = () => {
                 : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
                 }`}
               onClick={(e) => handleLike(book, e)}
-              title={bookStatuses[bookId]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
+              title={bookStatuses[bookId]?.like ? t("remove_like") : t("like_book")}
             >
               <span className="text-xl">
                 {bookStatuses[bookId]?.like ? '❤️' : '🤍'}
@@ -499,7 +499,7 @@ const Explore = () => {
                 ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
                 : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
                 }`}
-              title={bookStatuses[bookId]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+              title={bookStatuses[bookId]?.favorite ? t("remove_from_favorites") : t("add_to_favorites_button")}
             >
               <span className={`text-xl transition-all duration-300 ${bookStatuses[bookId]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
                 {bookStatuses[bookId]?.favorite ? '★' : '☆'}
@@ -518,7 +518,7 @@ const Explore = () => {
               {hasRealImage ? (
                 <img
                   src={imageUrl}
-                  alt={book.title || "Book"}
+                  alt={book.title || t("book")}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -531,10 +531,10 @@ const Explore = () => {
             {/* Book Info */}
             <div className="flex-1 min-w-0 pr-20">
               <h3 className="text-white font-semibold text-sm group-hover:text-blue-300 transition-colors line-clamp-2">
-                {book.title || "Unknown Title"}
+                {book.title || t("unknown_title")}
               </h3>
               <p className="text-white/70 text-xs mt-1">
-                {book.author || "Unknown Author"}
+                {book.author || t("unknown_author")}
               </p>
               {book.published_year && (
                 <p className="text-white/60 text-xs mt-1">
@@ -567,12 +567,12 @@ const Explore = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 space-y-16">
         <div>
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
-            {query ? 'Search Results' : 'Explore Books'}
+            {query ? t("search_results") : t("explore_books")}
           </h1>
           <p className="text-lg text-white/80">
             {query 
-              ? `Results for "${query}"${searchResults.length > 0 ? ` • ${searchResults.length} books found` : ''}`
-              : 'Discover trending reads, curated categories and what others are loving.'
+              ? `${t("results_for")} "${query}"${searchResults.length > 0 ? ` • ${searchResults.length} ${t("books_found")}` : ''}`
+              : t("discover_trending_reads")
             }
           </p>
         </div>
@@ -580,21 +580,21 @@ const Explore = () => {
         {/* 🔍 Search Results */}
         {query && (
           <section>
-            <h2 className="text-2xl font-bold mb-6">🔍 Search Results</h2>
+            <h2 className="text-2xl font-bold mb-6">🔍 {t("search_results")}</h2>
             
             {searchLoading && (
               <div className="text-center py-12">
                 <div className="text-4xl mb-4 animate-bounce">🔍</div>
-                <p className="text-lg">Searching for "{query}"...</p>
+                <p className="text-lg">{t("searching_for")} "{query}"...</p>
               </div>
             )}
 
             {!searchLoading && searchResults.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-4xl mb-4">📚</div>
-                <h3 className="text-xl font-bold mb-2">No Books Found</h3>
+                <h3 className="text-xl font-bold mb-2">{t("no_books_found_search")}</h3>
                 <p className="text-white/70">
-                  No books match your search for "{query}". Try different keywords.
+                  {t("no_books_match_search")} "{query}". {t("try_different_keywords")}
                 </p>
               </div>
             )}
@@ -615,7 +615,7 @@ const Explore = () => {
           <>
             {/* 📚 Most Read Books */}
             <section>
-              <h2 className="text-2xl font-bold mb-6">📚 Most Read Books</h2>
+              <h2 className="text-2xl font-bold mb-6">📚 {t("most_read_books")}</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 {loading
                   ? [...Array(3)].map((_, index) => (
@@ -642,14 +642,14 @@ const Explore = () => {
                               : 'bg-gray-500/30 text-gray-400 hover:bg-gray-500/50'
                               }`}
                             onClick={(e) => handleRead(book, e)}
-                            title={bookStatuses[book.id || book._id]?.read ? 'Okudum işaretini kaldır' : 'Okudum olarak işaretle'}
+                            title={bookStatuses[book.id || book._id]?.read ? t("remove_read_mark") : t("mark_as_read_button")}
                           >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
                             </svg>
                             {bookStatuses[book.id || book._id]?.read && (
-                              <span className="text-xs font-medium">Okundu</span>
+                              <span className="text-xs font-medium">{t("read_status")}</span>
                             )}
                           </button>
                         </div>
@@ -664,7 +664,7 @@ const Explore = () => {
                                 : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
                                 }`}
                               onClick={(e) => handleLike(book, e)}
-                              title={bookStatuses[book.id || book._id]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
+                              title={bookStatuses[book.id || book._id]?.like ? t("remove_like") : t("like_book")}
                             >
                               <span className="text-xl">
                                 {bookStatuses[book.id || book._id]?.like ? '❤️' : '🤍'}
@@ -678,7 +678,7 @@ const Explore = () => {
                                 : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
                                 }`}
                               onClick={(e) => handleFavorite(book, e)}
-                              title={bookStatuses[book.id || book._id]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                              title={bookStatuses[book.id || book._id]?.favorite ? t("remove_from_favorites") : t("add_to_favorites_button")}
                             >
                               <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
                                 {bookStatuses[book.id || book._id]?.favorite ? '★' : '☆'}
@@ -692,8 +692,8 @@ const Explore = () => {
                           className="block"
                         >
                           {renderBookCover(book)}
-                          <h3 className="text-lg font-semibold">{book.title || "Unknown Title"}</h3>
-                          <p className="text-sm text-white/70">by {book.author || "Unknown Author"}</p>
+                          <h3 className="text-lg font-semibold">{book.title || t("unknown_title")}</h3>
+                          <p className="text-sm text-white/70">{t("by")} {book.author || t("unknown_author")}</p>
                           {book.rating && (
                             <div className="mt-2 flex items-center">
                               <span className="text-yellow-400 text-sm">
@@ -709,8 +709,8 @@ const Explore = () => {
                   : (
                     <div className="col-span-full text-center py-12">
                       <div className="text-6xl mb-4">📚</div>
-                      <h3 className="text-xl font-semibold mb-2">No books found</h3>
-                      <p className="text-white/70">Check back later for popular books!</p>
+                      <h3 className="text-xl font-semibold mb-2">{t("no_books_found_category")}</h3>
+                      <p className="text-white/70">{t("check_back_later_books")}</p>
                     </div>
                   )}
               </div>
@@ -718,7 +718,7 @@ const Explore = () => {
 
             {/* 🗂️ Book Categories */}
             <section>
-              <h2 className="text-2xl font-bold mb-6">🗂️ Book Categories</h2>
+              <h2 className="text-2xl font-bold mb-6">🗂️ {t("book_categories")}</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {loading 
                   ? [...Array(6)].map((_, index) => (
@@ -744,7 +744,7 @@ const Explore = () => {
 
             {/* 💬 User Recommendations */}
             <section>
-              <h2 className="text-2xl font-bold mb-6">💬 User Recommendations</h2>
+              <h2 className="text-2xl font-bold mb-6">💬 {t("user_recommendations")}</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 {recommendations.length === 0
                   ? [...Array(3)].map((_, index) => (

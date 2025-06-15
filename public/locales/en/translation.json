@@ -205,5 +205,50 @@
   "book_title_missing": "No Book Title",
   "review_title_missing": "No Review Title",
   "review_text_missing": "No Comment",
-  "date_missing": "No Date"
+  "date_missing": "No Date",
+
+  "explore_books": "Explore Books",
+  "search_results": "Search Results",
+  "results_for": "Results for",
+  "books_found": "books found",
+  "discover_trending_reads": "Discover trending reads, curated categories and what others are loving.",
+  "searching_for": "Searching for",
+  "no_books_found_search": "No Books Found",
+  "no_books_match_search": "No books match your search for",
+  "try_different_keywords": "Try different keywords.",
+  
+  "most_read_books": "Most Read Books",
+  "book_categories": "Book Categories",
+  "user_recommendations": "User Recommendations",
+  
+  "please_login_to_like": "Please login to like this book.",
+  "must_read_first_like": "📖 You need to read this book first!",
+  "book_liked": "❤️ Book liked!",
+  "like_removed": "🤍 Like removed!",
+  "like_operation_failed": "Like operation failed. Please try again.",
+  
+  "please_login_to_favorite": "Please login to add to favorites.",
+  "must_read_first_favorite": "📖 You need to read this book first!",
+  "added_to_favorites": "⭐ Added to favorites!",
+  "removed_from_favorites": "☆ Removed from favorites!",
+  "favorite_operation_failed": "Favorite operation failed. Please try again.",
+  
+  "please_login_to_read": "Please login.",
+  "marked_as_read_success": "👁️✅ Book marked as read!",
+  "read_mark_removed": "👁️ Read mark removed!",
+  "read_operation_failed": "Operation failed. Please try again.",
+  
+  "book": "Book",
+  "read_status": "Read",
+  "remove_read_mark": "Remove read mark",
+  "mark_as_read_button": "Mark as read",
+  "remove_like": "Remove Like",
+  "like_book": "Like",
+  "remove_from_favorites": "Remove from Favorites",
+  "add_to_favorites_button": "Add to Favorites",
+  
+  "no_books_found_category": "No books found",
+  "check_back_later_books": "Check back later for popular books!",
+  
+  "by": "by"
 }

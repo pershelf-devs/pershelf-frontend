@@ -205,5 +205,50 @@
   "book_title_missing": "Kitap Başlığı Yok",
   "review_title_missing": "Review Başlığı Yok",
   "review_text_missing": "Yorum Yok",
-  "date_missing": "Tarih Yok"
+  "date_missing": "Tarih Yok",
+
+  "explore_books": "Kitapları Keşfet",
+  "search_results": "Arama Sonuçları",
+  "results_for": "Arama sonuçları:",
+  "books_found": "kitap bulundu",
+  "discover_trending_reads": "Trend kitapları, seçilmiş kategorileri ve diğerlerinin sevdiklerini keşfedin.",
+  "searching_for": "Aranıyor:",
+  "no_books_found_search": "Kitap Bulunamadı",
+  "no_books_match_search": "aramanız için eşleşen kitap yok. Farklı anahtar kelimeler deneyin.",
+  "try_different_keywords": "Farklı anahtar kelimeler deneyin.",
+  
+  "most_read_books": "En Çok Okunan Kitaplar",
+  "book_categories": "Kitap Kategorileri",
+  "user_recommendations": "Kullanıcı Önerileri",
+  
+  "please_login_to_like": "Bu kitabı beğenmek için lütfen giriş yapın.",
+  "must_read_first_like": "📖 Önce kitabı okumalısınız!",
+  "book_liked": "❤️ Kitap beğenildi!",
+  "like_removed": "🤍 Beğeni kaldırıldı!",
+  "like_operation_failed": "Beğenme işlemi başarısız. Lütfen tekrar deneyin.",
+  
+  "please_login_to_favorite": "Lütfen favori eklemek için giriş yapın.",
+  "must_read_first_favorite": "📖 Önce kitabı okumalısınız!",
+  "added_to_favorites": "⭐ Favorilere eklendi!",
+  "removed_from_favorites": "☆ Favorilerden çıkarıldı!",
+  "favorite_operation_failed": "Favori işlemi başarısız. Lütfen tekrar deneyin.",
+  
+  "please_login_to_read": "Lütfen giriş yapın.",
+  "marked_as_read_success": "👁️✅ Kitap okundu olarak işaretlendi!",
+  "read_mark_removed": "👁️ Okudum işareti kaldırıldı!",
+  "read_operation_failed": "İşlem başarısız. Lütfen tekrar deneyin.",
+  
+  "book": "Kitap",
+  "read_status": "Okundu",
+  "remove_read_mark": "Okudum işaretini kaldır",
+  "mark_as_read_button": "Okudum olarak işaretle",
+  "remove_like": "Beğeniyi Kaldır",
+  "like_book": "Beğen",
+  "remove_from_favorites": "Favorilerden Çıkar",
+  "add_to_favorites_button": "Favorilere Ekle",
+  
+  "no_books_found_category": "Kitap bulunamadı",
+  "check_back_later_books": "Popüler kitaplar için daha sonra tekrar kontrol edin!",
+  
+  "by": "yazan"
 }
