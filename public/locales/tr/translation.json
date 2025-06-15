@@ -103,5 +103,50 @@
   "quick_actions": "Hızlı Eylemler",
   "search_books": "Kitap Ara",
   "my_profile": "Profilim",
-  "social": "Sosyal"
+  "social": "Sosyal",
+  
+  "loading_book_details": "Kitap detayları yükleniyor...",
+  "book_not_found": "Kitap Bulunamadı",
+  "book_not_exist": "Aradığınız kitap mevcut değil.",
+  "go_back": "Geri Dön",
+  "coming_soon": "Yakında",
+  
+  "mark_as_read": "Okudum",
+  "marked_as_read": "Okundu",
+  "like": "Beğen",
+  "liked": "Beğenildi",
+  "add_to_favorites": "Favorilere Ekle",
+  "in_favorites": "Favorilerde",
+  "add_to_reading_list": "Okuma Listesine Ekle",
+  "in_reading_list": "Okuma Listesinde",
+  "write_review": "Yorum Yap",
+  
+  "unknown_title": "Bilinmeyen Başlık",
+  "unknown_author": "Bilinmeyen Yazar",
+  "description": "Açıklama",
+  "no_description": "Bu kitap için açıklama mevcut değil.",
+  "genre": "Tür",
+  "publication_info": "Yayın Bilgileri",
+  "added": "Eklendi",
+  "updated": "Güncellendi",
+  "reads": "okunma",
+  
+  "write_review_title": "İnceleme Yaz",
+  "rating": "Değerlendirme",
+  "review_title": "İnceleme Başlığı",
+  "review_title_placeholder": "İncelemenize bir başlık verin...",
+  "your_review": "İncelemeniz",
+  "review_placeholder": "Bu kitap hakkındaki düşüncelerinizi paylaşın...",
+  "cancel": "İptal",
+  "submit_review": "İncelemeyi Gönder",
+  "submitting": "Gönderiliyor...",
+  
+  "reviews": "İncelemeler",
+  "loading_reviews": "Yorumlar yükleniyor...",
+  "no_reviews_yet": "Henüz yorum yapılmamış. İlk yorumu siz yapın!",
+  
+  "need_to_read_first": "Bu kitap hakkında yorum yazmak için önce okumanız gerekiyor.",
+  "need_to_read_to_like": "Bu kitabı beğenmek için önce okumanız gerekiyor.",
+  "need_to_read_to_favorite": "Bu kitabı favoriye eklemek için önce okumanız gerekiyor.",
+  "login_required": "Lütfen giriş yapın."
 }

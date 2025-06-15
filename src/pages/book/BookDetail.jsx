@@ -3,7 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import usePagination from '../../hooks/usePagination.jsx';
+
 import NotificationService from '../../utils/notificationService';
 
 const BookDetail = () => {
@@ -16,16 +16,56 @@ const BookDetail = () => {
   const [allReviews, setAllReviews] = useState([]); // Tüm review'ları sakla
   const [reviewsLoading, setReviewsLoading] = useState(true);
   
-  // Simple pagination hook'u (reviews için)
-  const { useSimplePagination } = usePagination();
-  const {
-    currentPage: currentReviewPage,
-    setCurrentPage: setCurrentReviewPage,
-    getSimplePaginatedData,
-    renderSimplePagination
-  } = useSimplePagination(1);
+  // Simple pagination state (reviews için)
+  const [currentReviewPage, setCurrentReviewPage] = useState(1);
   
   const reviewsPerPage = 5; // Her sayfada 5 yorum göster
+  
+  // Pagination helper functions
+  const getSimplePaginatedData = (data, itemsPerPage) => {
+    const startIndex = (currentReviewPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return data.slice(startIndex, endIndex);
+  };
+
+  const renderSimplePagination = (totalItems, itemsPerPage) => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-6">
+        <button
+          onClick={() => setCurrentReviewPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentReviewPage === 1}
+          className="px-3 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-lg transition"
+        >
+          ←
+        </button>
+        
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+          <button
+            key={page}
+            onClick={() => setCurrentReviewPage(page)}
+            className={`px-3 py-2 rounded-lg transition ${
+              currentReviewPage === page
+                ? 'bg-blue-500 text-white'
+                : 'bg-white/10 hover:bg-white/20 text-white/80'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        
+        <button
+          onClick={() => setCurrentReviewPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentReviewPage === totalPages}
+          className="px-3 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-lg transition"
+        >
+          →
+        </button>
+      </div>
+    );
+  };
   const [bookStatus, setBookStatus] = useState({
     like: false,
     favorite: false,
@@ -130,7 +170,7 @@ const BookDetail = () => {
       <div className="relative w-48 h-72 rounded shadow-lg overflow-hidden">
         <img
           src={imageUrl}
-          alt={book.title || "Book"}
+          alt={book.title || t("unknown_title")}
           className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
           onError={(e) => {
             e.target.style.display = 'none';
@@ -150,14 +190,14 @@ const BookDetail = () => {
 
           <div className="relative z-10 flex-1 flex items-center justify-center">
             <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
-              {book.title || "Unknown Title"}
+              {book.title || t("unknown_title")}
             </h3>
           </div>
 
           <div className="relative z-10 mt-auto">
             <div className="h-px bg-white/30 mb-3"></div>
             <p className="text-sm opacity-90 font-medium text-center">
-              {book.author || "Unknown Author"}
+              {book.author || t("unknown_author")}
             </p>
           </div>
         </div>
@@ -391,7 +431,7 @@ const BookDetail = () => {
   const toggleReviewForm = () => {
     // Kitap okunmadan yorum yazılamaz
     if (!bookStatus?.read && !showReviewForm) {
-      NotificationService.warning("Bu kitap hakkında yorum yazmak için önce okumanız gerekiyor.");
+      NotificationService.warning(t("need_to_read_first"));
       return;
     }
 
@@ -408,14 +448,14 @@ const BookDetail = () => {
 
   const handleLike = async () => {
     if (!currentUser) {
-      NotificationService.info("Please login to like this book.");
+      NotificationService.info(t("login_required"));
       return;
     }
     if (!book) return;
 
     // Kitap okunmadan beğenilemez
     if (!bookStatus?.read) {
-      NotificationService.warning("Bu kitabı beğenmek için önce okumanız gerekiyor.");
+      NotificationService.warning(t("need_to_read_to_like"));
       return;
     }
 
@@ -448,7 +488,7 @@ const BookDetail = () => {
 
     // Kitap okunmadan favoriye eklenemez
     if (!bookStatus?.read) {
-      NotificationService.warning("Bu kitabı favoriye eklemek için önce okumanız gerekiyor.");
+      NotificationService.warning(t("need_to_read_to_favorite"));
       return;
     }
 
@@ -555,7 +595,7 @@ const BookDetail = () => {
       <div className="min-h-screen bg-[#2a1a0f] text-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-bounce">📚</div>
-          <p className="text-lg">Loading book details...</p>
+          <p className="text-lg">{t("loading_book_details")}</p>
         </div>
       </div>
     );
@@ -569,24 +609,24 @@ const BookDetail = () => {
             {error?.includes("will be available soon") ? "🚧" : "😞"}
           </div>
           <h2 className="text-xl font-bold mb-2">
-            {error?.includes("will be available soon") ? "Coming Soon" : "Book Not Found"}
+            {error?.includes("will be available soon") ? t("coming_soon") : t("book_not_found")}
           </h2>
           <p className="text-white/70 mb-4 leading-relaxed">
-            {error || "The book you're looking for doesn't exist."}
+            {error || t("book_not_exist")}
           </p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => window.history.back()}
               className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition"
             >
-              ← Go Back
+              ← {t("go_back")}
             </button>
             {error?.includes("will be available soon") && (
               <button
                 onClick={() => window.location.reload()}
                 className="bg-blue-500/20 hover:bg-blue-500/30 px-4 py-2 rounded-lg transition"
               >
-                🔄 Try Again
+                🔄 {t("try_again")}
               </button>
             )}
           </div>
@@ -622,14 +662,14 @@ const BookDetail = () => {
               >
                 <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
               </svg>
-              {bookStatus?.read ? 'Okundu' : 'Okudum'}
+              {bookStatus?.read ? t("marked_as_read") : t("mark_as_read")}
             </button>
           </div>
           
           <div className="flex-1 space-y-4">
-            <h1 className="text-3xl font-bold">{book.title || "Unknown Title"}</h1>
+            <h1 className="text-3xl font-bold">{book.title || t("unknown_title")}</h1>
             <p className="text-white/70 text-sm">
-              by {book.author || "Unknown Author"}
+              by {book.author || t("unknown_author")}
               {(book.published_year || book.year) && ` • ${book.published_year || book.year}`}
             </p>
 
@@ -646,7 +686,7 @@ const BookDetail = () => {
             {book.reads !== undefined && (
               <div className="flex items-center gap-2">
                 <span className="text-blue-400">📖</span>
-                <span className="text-white/80 text-sm">{book.reads.toLocaleString()} reads</span>
+                <span className="text-white/80 text-sm">{book.reads.toLocaleString()} {t("reads")}</span>
               </div>
             )}
 
@@ -659,15 +699,15 @@ const BookDetail = () => {
             )}
 
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Description</h3>
+              <h3 className="text-lg font-semibold">{t("description")}</h3>
               <p className="text-white/90 leading-relaxed">
-                {book.description || book.summary || "No description available for this book."}
+                {book.description || book.summary || t("no_description")}
               </p>
             </div>
 
             {book.genre && (
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Genre</h3>
+                <h3 className="text-lg font-semibold">{t("genre")}</h3>
                 <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
                   {book.genre}
                 </span>
@@ -676,13 +716,13 @@ const BookDetail = () => {
 
             {(book.created_at || book.updated_at) && (
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Publication Info</h3>
+                <h3 className="text-lg font-semibold">{t("publication_info")}</h3>
                 <div className="space-y-1 text-sm text-white/70">
                   {book.created_at && (
-                    <p>Added: {new Date(book.created_at).toLocaleDateString()}</p>
+                    <p>{t("added")}: {new Date(book.created_at).toLocaleDateString()}</p>
                   )}
                   {book.updated_at && book.updated_at !== book.created_at && (
-                    <p>Updated: {new Date(book.updated_at).toLocaleDateString()}</p>
+                    <p>{t("updated")}: {new Date(book.updated_at).toLocaleDateString()}</p>
                   )}
                 </div>
               </div>
@@ -703,7 +743,7 @@ const BookDetail = () => {
                 <span className={`text-xl transition-transform duration-300 ${bookStatus?.like ? 'scale-110' : ''}`}>
                   {bookStatus?.like ? '❤️' : '🤍'}
                 </span>
-                {bookStatus?.like ? 'Beğenildi' : 'Beğen'}
+                {bookStatus?.like ? t("liked") : t("like")}
               </button>
               {/* Add to Favorite */}
               <button
@@ -721,7 +761,7 @@ const BookDetail = () => {
                   {bookStatus?.favorite ? '⭐' : '☆'}
                 </span>
                 <span className={`group-hover:text-white/90 ${bookStatus?.favorite ? 'text-yellow-300' : ''}`}>
-                  {bookStatus?.favorite ? 'Favorilerde' : 'Favorilere Ekle'}
+                  {bookStatus?.favorite ? t("in_favorites") : t("add_to_favorites")}
                 </span>
               </button>
               {/* Add to Reading List */}
@@ -736,7 +776,7 @@ const BookDetail = () => {
                 <span className={`text-xl transition-transform duration-300 ${(bookStatus?.read_list || bookStatus?.readingList) ? 'scale-110' : ''}`}>
                   {(bookStatus?.read_list || bookStatus?.readingList) ? '📖' : '➕'}
                 </span>
-                {(bookStatus?.read_list || bookStatus?.readingList) ? 'Okuma Listesinde' : 'Okuma Listesine Ekle'}
+                {(bookStatus?.read_list || bookStatus?.readingList) ? t("in_reading_list") : t("add_to_reading_list")}
               </button>
               
               <button
@@ -748,14 +788,14 @@ const BookDetail = () => {
                     : 'bg-green-500/20 hover:bg-green-500/30'
                 }`}
               >
-                ✍️ Yorum Yap
+                ✍️ {t("write_review")}
               </button>
             </div>
 
             {showReviewForm && (
               <div className="mt-8 p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-white">Write Review</h3>
+                  <h3 className="text-xl font-bold text-white">{t("write_review_title")}</h3>
                   <button
                     onClick={toggleReviewForm}
                     className="text-white/60 hover:text-white text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition"
@@ -765,7 +805,7 @@ const BookDetail = () => {
                 </div>
 
                 <div>
-                  <label className="block text-white font-medium mb-3">Rating</label>
+                  <label className="block text-white font-medium mb-3">{t("rating")}</label>
                   <div className="flex items-center gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -788,23 +828,23 @@ const BookDetail = () => {
                 </div>
 
                 <div>
-                  <label className="block text-white font-medium mb-2">Review Title</label>
+                  <label className="block text-white font-medium mb-2">{t("review_title")}</label>
                   <input
                     type="text"
                     value={reviewData.title}
                     onChange={(e) => setReviewData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Give your review a title..."
+                    placeholder={t("review_title_placeholder")}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white font-medium mb-2">Your Review</label>
+                  <label className="block text-white font-medium mb-2">{t("your_review")}</label>
                   <textarea
                     value={reviewData.content}
                     onChange={(e) => setReviewData(prev => ({ ...prev, content: e.target.value }))}
-                    placeholder="Share your thoughts about this book..."
+                    placeholder={t("review_placeholder")}
                     rows="4"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition resize-none"
                     required
@@ -823,7 +863,7 @@ const BookDetail = () => {
                     onClick={toggleReviewForm}
                     className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition"
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="submit"
@@ -834,11 +874,11 @@ const BookDetail = () => {
                     {reviewLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Submitting...
+                        {t("submitting")}
                       </>
                     ) : (
                       <>
-                        ✍️ Submit Review
+                        ✍️ {t("submit_review")}
                       </>
                     )}
                   </button>
@@ -847,12 +887,12 @@ const BookDetail = () => {
             )}
 
             <div className="mt-12">
-              <h3 className="text-2xl font-bold mb-6">Reviews</h3>
+              <h3 className="text-2xl font-bold mb-6">{t("reviews")}</h3>
 
               {reviewsLoading ? (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-white/70">Yorumlar yükleniyor...</p>
+                  <p className="text-white/70">{t("loading_reviews")}</p>
                 </div>
               ) : allReviews.length > 0 ? (
                 <div className="space-y-6">
@@ -867,7 +907,7 @@ const BookDetail = () => {
                 </div>
               ) : (
                 <div className="text-center py-8 bg-white/5 rounded-xl">
-                  <p className="text-white/70">Henüz yorum yapılmamış. İlk yorumu siz yapın!</p>
+                  <p className="text-white/70">{t("no_reviews_yet")}</p>
                 </div>
               )}
             </div>

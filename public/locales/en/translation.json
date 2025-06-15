@@ -103,5 +103,49 @@
   "quick_actions": "Quick Actions",
   "search_books": "Search Books",
   "my_profile": "My Profile",
-  "social": "Social"
+  "social": "Social",
+  
+  "loading_book_details": "Loading book details...",
+  "book_not_found": "Book Not Found",
+  "book_not_exist": "The book you're looking for doesn't exist.",
+  "go_back": "Go Back",
+  "try_again": "Try Again",
+  "coming_soon": "Coming Soon",
+  
+  "mark_as_read": "Mark as Read",
+  "marked_as_read": "Read",
+  "like": "Like",
+  "liked": "Liked",
+  "add_to_favorites": "Add to Favorites",
+  "in_favorites": "In Favorites",
+  "add_to_reading_list": "Add to Reading List",
+  "in_reading_list": "In Reading List",
+  "write_review": "Write Review",
+  
+  "description": "Description",
+  "no_description": "No description available for this book.",
+  "genre": "Genre",
+  "publication_info": "Publication Info",
+  "added": "Added",
+  "updated": "Updated",
+  "reads": "reads",
+  
+  "write_review_title": "Write Review",
+  "rating": "Rating",
+  "review_title": "Review Title",
+  "review_title_placeholder": "Give your review a title...",
+  "your_review": "Your Review",
+  "review_placeholder": "Share your thoughts about this book...",
+  "cancel": "Cancel",
+  "submit_review": "Submit Review",
+  "submitting": "Submitting...",
+  
+  "reviews": "Reviews",
+  "loading_reviews": "Loading reviews...",
+  "no_reviews_yet": "No reviews yet. Be the first to review!",
+  
+  "need_to_read_first": "You need to read this book first to write a review.",
+  "need_to_read_to_like": "You need to read this book first to like it.",
+  "need_to_read_to_favorite": "You need to read this book first to add it to favorites.",
+  "login_required": "Please login."
 }
