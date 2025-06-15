@@ -121,8 +121,6 @@
   "in_reading_list": "Okuma Listesinde",
   "write_review": "Yorum Yap",
   
-  "unknown_title": "Bilinmeyen Başlık",
-  "unknown_author": "Bilinmeyen Yazar",
   "description": "Açıklama",
   "no_description": "Bu kitap için açıklama mevcut değil.",
   "genre": "Tür",
@@ -143,7 +141,6 @@
   
   "reviews": "İncelemeler",
   "loading_reviews": "Yorumlar yükleniyor...",
-  "no_reviews_yet": "Henüz yorum yapılmamış. İlk yorumu siz yapın!",
   
   "need_to_read_first": "Bu kitap hakkında yorum yazmak için önce okumanız gerekiyor.",
   "need_to_read_to_like": "Bu kitabı beğenmek için önce okumanız gerekiyor.",
@@ -193,8 +190,6 @@
   "profile_photo_upload_error": "Resim yüklenirken bir hata oluştu.",
   "profile_photo_remove_error": "Resim kaldırılırken bir hata oluştu.",
 
-  "books": "Kitaplar",
-  "likes": "Beğeniler",
   "readlist": "Okuma Listesi",
 
   "no_books_yet": "Henüz kitabınız yok",
