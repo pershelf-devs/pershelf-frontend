@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/user/userSlice";
-import { toast } from "react-toastify";
 import ExpandableSearchBar from "./ExpandableSearchBar";
+import NotificationService from "../utils/notificationService";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
@@ -22,11 +22,15 @@ const Header = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    toast.success("Logged out successfully");
+    NotificationService.auth.logoutSuccess();
+    setTimeout(() => {
+      navigate('/');
+    }, 1000);
   };
 
   const handleSearch = (query) => {
     console.log("Aranan kitap:", query);
+    NotificationService.info(`"${query}" için arama sonuçları yükleniyor...`);
     // Explore sayfasına query parametresiyle git
     navigate(`/explore?query=${encodeURIComponent(query)}`);
   };

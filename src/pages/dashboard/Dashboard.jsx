@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { apiCache } from "../../utils/apiCache";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import NotificationService from "../../utils/notificationService";
 
 // Remove mock data for popularBooks - we'll fetch from backend
 // const popularBooks = [
@@ -73,10 +74,29 @@ const Dashboard = () => {
           
           // Global cache'e kaydet
           apiCache.set(cacheKey, books);
+          
+          // Success notification (sadece data varsa göster)
+          if (books.length > 0) {
+            NotificationService.info(`${books.length} popüler kitap yüklendi 📚`, { autoClose: 2000 });
+          }
+        } else {
+          // API'den hata kodu döndü
+          NotificationService.warning("Popüler kitaplar yüklenirken bir sorun oluştu.");
         }
       })
       .catch(err => {
         console.error("API error:", err.response?.data || err.message);
+        
+        // Network error handling
+        if (err.code === 'NETWORK_ERROR' || !err.response) {
+          NotificationService.networkError();
+        } else if (err.response?.status === 500) {
+          NotificationService.serverError();
+        } else if (err.response?.status === 429) {
+          NotificationService.rateLimitError();
+        } else {
+          NotificationService.error("Popüler kitaplar yüklenirken hata oluştu.");
+        }
       })
       .finally(() => {
         setLoading(false);
@@ -175,6 +195,32 @@ const Dashboard = () => {
     return `${currentUser?.name} ${currentUser?.surname}` || currentUser?.username || currentUser?.email || "User";
   };
 
+  // Quick action functions
+  const handleQuickSearch = () => {
+    NotificationService.info("Arama sayfasına yönlendiriliyorsunuz...");
+    // Navigate to search page
+    window.location.href = '/explore';
+  };
+
+  const handleAddBook = () => {
+    NotificationService.info("Kitap ekleme özelliği yakında eklenecek 📚");
+  };
+
+  const handleWriteReview = () => {
+    NotificationService.info("İnceleme yazma sayfasına yönlendiriliyorsunuz...");
+    // Could navigate to a review writing page
+  };
+
+  const handleViewProfile = () => {
+    NotificationService.info("Profilinize yönlendiriliyorsunuz...");
+    window.location.href = '/profile';
+  };
+
+  const handleViewSocial = () => {
+    NotificationService.info("Sosyal sayfaya yönlendiriliyorsunuz...");
+    window.location.href = '/social';
+  };
+
   return (
     <div
       className="min-h-screen bg-cover bg-center relative text-white"
@@ -248,6 +294,7 @@ const Dashboard = () => {
                         key={book.id || book._id || index} 
                         to={`/book/details?id=${book.id || book._id}`}
                         className="bg-white/10 p-4 rounded-lg shadow text-center hover:bg-white/20 transition-all cursor-pointer block"
+                        onClick={() => NotificationService.info(`${book.title} kitabının detaylarına yönlendiriliyorsunuz...`)}
                       >
                         {renderBookCover(book)}
                         <h4 className="font-bold">{book.title || "Unknown Title"}</h4>
@@ -261,6 +308,52 @@ const Dashboard = () => {
                       <p className="text-white/70">{t("check_back_later")}!</p>
                     </div>
                   )}
+              </div>
+            </section>
+
+            {/* Quick Actions */}
+            <section>
+              <h3 className="text-2xl font-semibold mb-6 text-center">⚡ Hızlı Eylemler</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <button
+                  onClick={handleQuickSearch}
+                  className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">🔍</div>
+                  <p className="text-sm font-medium">Kitap Ara</p>
+                </button>
+
+                <button
+                  onClick={handleAddBook}
+                  className="bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">📚</div>
+                  <p className="text-sm font-medium">Kitap Ekle</p>
+                </button>
+
+                <button
+                  onClick={handleWriteReview}
+                  className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">✍️</div>
+                  <p className="text-sm font-medium">İnceleme Yaz</p>
+                </button>
+
+                <button
+                  onClick={handleViewProfile}
+                  className="bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">👤</div>
+                  <p className="text-sm font-medium">Profilim</p>
+                </button>
+
+                <button
+                  onClick={handleViewSocial}
+                  className="bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">👥</div>
+                  <p className="text-sm font-medium">Sosyal</p>
+                </button>
               </div>
             </section>
 

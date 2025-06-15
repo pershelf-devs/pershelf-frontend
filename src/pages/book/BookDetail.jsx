@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import usePagination from '../../hooks/usePagination.jsx';
+import NotificationService from '../../utils/notificationService';
 
 const BookDetail = () => {
   const [searchParams] = useSearchParams();
@@ -167,6 +167,10 @@ const BookDetail = () => {
 
   const fetchFromCoreBackend = useCallback((id) => {
     setLoading(true);
+    setError(null);
+
+    // Loading notification
+    const loadingToast = NotificationService.loading("Kitap bilgileri yükleniyor...");
 
     api
       .post("/books/get/id", parseInt(id), {
@@ -175,6 +179,9 @@ const BookDetail = () => {
         },
       })
       .then((res) => {
+        // Dismiss loading toast
+        NotificationService.dismiss(loadingToast);
+
         const data = res.data;
 
         if (typeof data === "string" && data.startsWith("<!DOCTYPE html")) {
@@ -182,7 +189,9 @@ const BookDetail = () => {
         }
 
         if (data.status?.code === "3") {
-          setError(data.values?.[0] || "Book not found.");
+          const errorMsg = data.values?.[0] || "Kitap bulunamadı.";
+          setError(errorMsg);
+          NotificationService.error(errorMsg);
           return;
         }
 
@@ -196,12 +205,34 @@ const BookDetail = () => {
 
         if (bookData) {
           setBook(bookData);
+          NotificationService.success(`"${bookData.title}" kitabı yüklendi 📖`, { autoClose: 2000 });
         } else {
-          setError("Book not found or backend is returning invalid format.");
+          const errorMsg = "Kitap bulunamadı veya sunucu geçersiz format döndürüyor.";
+          setError(errorMsg);
+          NotificationService.error(errorMsg);
         }
       })
       .catch((err) => {
-        setError("Book not found or backend is returning invalid format.");
+        // Dismiss loading toast
+        NotificationService.dismiss(loadingToast);
+        
+        console.error("Book fetch error:", err);
+        
+        let errorMessage = "Kitap yüklenirken hata oluştu.";
+        
+        if (err.code === 'NETWORK_ERROR' || !err.response) {
+          errorMessage = "İnternet bağlantınızı kontrol edin.";
+          NotificationService.networkError();
+        } else if (err.response?.status === 404) {
+          errorMessage = "Kitap bulunamadı.";
+          NotificationService.error(errorMessage);
+        } else if (err.response?.status === 500) {
+          NotificationService.serverError();
+        } else {
+          NotificationService.error(errorMessage);
+        }
+        
+        setError(errorMessage);
       })
       .finally(() => {
         setLoading(false);
@@ -261,16 +292,34 @@ const BookDetail = () => {
             
             setAllReviews(reviewsWithUsers);
             
+            // Success notification (sadece review varsa)
+            if (reviewsWithUsers.length > 0) {
+              NotificationService.info(`${reviewsWithUsers.length} inceleme yüklendi 💬`, { autoClose: 2000 });
+            }
+            
           } catch (userFetchError) {
             console.error("❌ Kullanıcı bilgileri alınırken hata:", userFetchError);
             setAllReviews(reviewsData);
+            NotificationService.warning("İncelemeler yüklendi ancak kullanıcı bilgileri eksik.");
           }
         } else {
           setAllReviews(reviewsData);
         }
+      } else {
+        // API'den error response geldi
+        NotificationService.warning("İncelemeler yüklenirken bir sorun oluştu.");
       }
     } catch (error) {
       console.error("Yorumlar yüklenirken hata oluştu:", error);
+      
+      // Network error handling
+      if (error.code === 'NETWORK_ERROR' || !error.response) {
+        NotificationService.networkError();
+      } else if (error.response?.status === 500) {
+        NotificationService.serverError();
+      } else {
+        NotificationService.error("İncelemeler yüklenirken hata oluştu.");
+      }
     } finally {
       setReviewsLoading(false);
     }
@@ -280,6 +329,9 @@ const BookDetail = () => {
     e.preventDefault();
     setReviewLoading(true);
     setReviewError(null);
+
+    // Loading notification
+    const loadingToast = NotificationService.loading("İncelemeniz gönderiliyor...");
 
     try {
       const reviewPayload = JSON.stringify({
@@ -291,8 +343,12 @@ const BookDetail = () => {
       });
 
       const response = await api.post("/reviews/create/book-review", reviewPayload);
+      
+      // Dismiss loading toast
+      NotificationService.dismiss(loadingToast);
+      
       if (response?.data?.code === "0") {
-        toast.success("Yorumunuz başarıyla eklendi!");
+        NotificationService.book.reviewSuccess();
         // Yeni yorum eklendikten sonra ilk sayfaya dön ve yeniden yükle
         setCurrentReviewPage(1);
         fetchReviews(book.id);
@@ -303,11 +359,30 @@ const BookDetail = () => {
           content: ''
         });
       } else {
-        throw new Error(response?.data?.status?.message || "Yorum eklenirken bir hata oluştu");
+        const errorMsg = response?.data?.status?.message || "İnceleme eklenirken bir hata oluştu";
+        setReviewError(errorMsg);
+        NotificationService.book.reviewError();
       }
     } catch (err) {
-      console.error(err);
-      setReviewError(err.response?.data?.message || "Yorum eklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+      // Dismiss loading toast
+      NotificationService.dismiss(loadingToast);
+      
+      console.error("Review submission error:", err);
+      
+      let errorMessage = "İnceleme eklenirken bir hata oluştu. Lütfen tekrar deneyin.";
+      
+      if (err.code === 'NETWORK_ERROR' || !err.response) {
+        NotificationService.networkError();
+      } else if (err.response?.status === 500) {
+        NotificationService.serverError();
+      } else if (err.response?.status === 400) {
+        errorMessage = "İnceleme verileriniz geçersiz. Lütfen kontrol edin.";
+        NotificationService.validationError(errorMessage);
+      } else {
+        NotificationService.book.reviewError();
+      }
+      
+      setReviewError(errorMessage);
     } finally {
       setReviewLoading(false);
     }
@@ -316,7 +391,7 @@ const BookDetail = () => {
   const toggleReviewForm = () => {
     // Kitap okunmadan yorum yazılamaz
     if (!bookStatus?.read && !showReviewForm) {
-      toast.warning("Bu kitap hakkında yorum yazmak için önce okumanız gerekiyor.");
+      NotificationService.warning("Bu kitap hakkında yorum yazmak için önce okumanız gerekiyor.");
       return;
     }
 
@@ -333,14 +408,14 @@ const BookDetail = () => {
 
   const handleLike = async () => {
     if (!currentUser) {
-      toast.info("Please login to like this book.");
+      NotificationService.info("Please login to like this book.");
       return;
     }
     if (!book) return;
 
     // Kitap okunmadan beğenilemez
     if (!bookStatus?.read) {
-      toast.warning("Bu kitabı beğenmek için önce okumanız gerekiyor.");
+      NotificationService.warning("Bu kitabı beğenmek için önce okumanız gerekiyor.");
       return;
     }
 
@@ -352,7 +427,7 @@ const BookDetail = () => {
 
       if (response?.data?.status?.code === "0") {
         setBookStatus(response?.data?.userBookRelations?.[0]);
-        toast.success("Kitabı beğendiniz! ❤️");
+        NotificationService.success("Kitabı beğendiniz! ❤️");
         
         // ProfilePage'deki liked books listesini güncelle
         if (window.refreshProfileLikedBooks) {
@@ -360,20 +435,20 @@ const BookDetail = () => {
         }
       } 
     } catch (err) {
-      toast.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
+      NotificationService.error("Beğenme işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };
 
   const handleFavorite = async () => {
     if (!currentUser) {
-      toast.info("Lütfen favori eklemek için giriş yapın.");
+      NotificationService.info("Lütfen favori eklemek için giriş yapın.");
       return;
     }
     if (!book) return;
 
     // Kitap okunmadan favoriye eklenemez
     if (!bookStatus?.read) {
-      toast.warning("Bu kitabı favoriye eklemek için önce okumanız gerekiyor.");
+      NotificationService.warning("Bu kitabı favoriye eklemek için önce okumanız gerekiyor.");
       return;
     }
 
@@ -385,16 +460,16 @@ const BookDetail = () => {
 
       if (response?.data?.status?.code === "0") {
         setBookStatus(response?.data?.userBookRelations?.[0]);
-        toast.success("Kitap favorilere eklendi! ⭐");
+        NotificationService.success("Kitap favorilere eklendi! ⭐");
       } 
     } catch (err) {
-      toast.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
+      NotificationService.error("Favori işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };
 
   const handleread_list = async () => {
     if (!currentUser) {
-      toast.info("Lütfen okuma listesine eklemek için giriş yapın.");
+      NotificationService.info("Lütfen okuma listesine eklemek için giriş yapın.");
       return;
     }
     if (!book) return;
@@ -413,13 +488,13 @@ const BookDetail = () => {
       } 
     } catch (err) {
       console.error("Reading List Error:", err);
-      toast.error("Okuma listesi işlemi başarısız. Lütfen tekrar deneyin.");
+      NotificationService.error("Okuma listesi işlemi başarısız. Lütfen tekrar deneyin.");
     }
   };
 
   const handleRead = async () => {
     if (!currentUser) {
-      toast.info("Lütfen okudum işaretlemek için giriş yapın.");
+      NotificationService.info("Lütfen okudum işaretlemek için giriş yapın.");
       return;
     }
     if (!book) return;
@@ -435,7 +510,7 @@ const BookDetail = () => {
       if (response?.data?.status?.code === "0") {
         // Kitap okundu olarak işaretlendi
         setBookStatus(response?.data?.userBookRelations?.[0]);
-        toast.success("Kitap okudum olarak işaretlendi ve okuma listesinden kaldırıldı! 👁️✅");
+        NotificationService.success("Kitap okudum olarak işaretlendi ve okuma listesinden kaldırıldı! 👁️✅");
         
         // ProfilePage'deki readList'i güncelle
         if (window.refreshProfileReadList) {
@@ -443,7 +518,7 @@ const BookDetail = () => {
         }
       } 
     } catch (err) {
-      toast.error("Okudum işaretleme başarısız. Lütfen tekrar deneyin.");
+      NotificationService.error("Okudum işaretleme başarısız. Lütfen tekrar deneyin.");
     }
   };
 
