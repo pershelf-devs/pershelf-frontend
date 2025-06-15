@@ -4,6 +4,7 @@ import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import usePagination from '../../hooks/usePagination';
 
 const BookDetail = () => {
   const [searchParams] = useSearchParams();
@@ -14,7 +15,16 @@ const BookDetail = () => {
   const { currentUser } = useSelector((state) => state.user);
   const [allReviews, setAllReviews] = useState([]); // Tüm review'ları sakla
   const [reviewsLoading, setReviewsLoading] = useState(true);
-  const [currentReviewPage, setCurrentReviewPage] = useState(1);
+  
+  // Simple pagination hook'u (reviews için)
+  const { useSimplePagination } = usePagination();
+  const {
+    currentPage: currentReviewPage,
+    setCurrentPage: setCurrentReviewPage,
+    getSimplePaginatedData,
+    renderSimplePagination
+  } = useSimplePagination(1);
+  
   const reviewsPerPage = 5; // Her sayfada 5 yorum göster
   const [bookStatus, setBookStatus] = useState({
     like: false,
@@ -448,63 +458,6 @@ const BookDetail = () => {
     fetchReviews(id);
   }, [id, fetchFromCoreBackend]);
 
-  // UserProfile benzeri pagination fonksiyonları
-  const getPaginatedReviews = () => {
-    const startIndex = (currentReviewPage - 1) * reviewsPerPage;
-    const endIndex = startIndex + reviewsPerPage;
-    return allReviews.slice(startIndex, endIndex);
-  };
-
-  const getTotalReviewPages = () => {
-    return Math.ceil(allReviews.length / reviewsPerPage);
-  };
-
-  const handleReviewPageChange = (pageNumber) => {
-    setCurrentReviewPage(pageNumber);
-  };
-
-  const renderReviewPagination = () => {
-    const totalPages = getTotalReviewPages();
-    if (totalPages <= 1) return null;
-
-    return (
-      <div className="flex justify-center items-center gap-2 mt-6">
-        <button
-          onClick={() => handleReviewPageChange(currentReviewPage - 1)}
-          disabled={currentReviewPage === 1}
-          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          ←
-        </button>
-        
-        {[...Array(totalPages)].map((_, index) => {
-          const pageNum = index + 1;
-          return (
-            <button
-              key={pageNum}
-              onClick={() => handleReviewPageChange(pageNum)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                currentReviewPage === pageNum
-                  ? 'bg-white text-gray-900'
-                  : 'bg-white/10 hover:bg-white/20 text-white'
-              }`}
-            >
-              {pageNum}
-            </button>
-          );
-        })}
-        
-        <button
-          onClick={() => handleReviewPageChange(currentReviewPage + 1)}
-          disabled={currentReviewPage === totalPages}
-          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          →
-        </button>
-      </div>
-    );
-  };
-
   useEffect(() => {
     if (!currentUser || !book || !(book.id || book._id)) {
       return; // User veya book yüklenmemişse çıkış yap
@@ -829,13 +782,13 @@ const BookDetail = () => {
               ) : allReviews.length > 0 ? (
                 <div className="space-y-6">
                   <div className="space-y-6">
-                    {getPaginatedReviews().map((review, index) => (
+                    {getSimplePaginatedData(allReviews, reviewsPerPage).map((review, index) => (
                       <div key={`${review.id || review._id}-${index}`}>
                         {renderReviewCard(review)}
                       </div>
                     ))}
                   </div>
-                  {renderReviewPagination()}
+                  {renderSimplePagination(allReviews.length, reviewsPerPage)}
                 </div>
               ) : (
                 <div className="text-center py-8 bg-white/5 rounded-xl">

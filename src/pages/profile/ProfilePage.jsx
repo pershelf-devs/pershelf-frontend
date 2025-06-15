@@ -2,19 +2,31 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import BooksCard from '../../components/elements/BooksCard';
+import usePagination from '../../hooks/usePagination';
 
 const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState("Books");
+  const [activeTab, setActiveTab] = useState('books');
   const { currentUser } = useSelector((state) => state.user);
   const [user, setUser] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [userReviews, setUserReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [likedBooks, setLikedBooks] = useState([]);
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [readList, setReadList] = useState([]);
   const [userBooks, setUserBooks] = useState([]);
+
+  // Takip sistemi state'leri
+  const [followStats, setFollowStats] = useState({
+    followers: 0,
+    following: 0
+  });
+
+  // Pagination hook'u
+  const { getPaginatedData, renderPagination } = usePagination(4);
+
+  // Image upload states
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleProfileManagement = async (action, data = null) => {
     switch (action) {
@@ -140,6 +152,33 @@ const ProfilePage = () => {
         }
         break;
 
+      case 'fetchFollowStats':
+        try {
+          // TODO: Endpoint hazır olduğunda aşağıdaki kodlar aktif edilecek
+          /*
+          const response = await api.post("/users/get/follow-stats", currentUser?.id);
+          if (response?.data?.status?.code === "0") {
+            setFollowStats({
+              followers: response.data.followers || 0,
+              following: response.data.following || 0
+            });
+          }
+          */
+          
+          // Şimdilik dummy data
+          setFollowStats({
+            followers: Math.floor(Math.random() * 200), // Random followers
+            following: Math.floor(Math.random() * 100)  // Random following
+          });
+        } catch (error) {
+          console.error("Takip istatistikleri alınırken hata:", error);
+          setFollowStats({
+            followers: 0,
+            following: 0
+          });
+        }
+        break;
+
       case 'handleImageSelect':
         const file = data;
         if (file) {
@@ -228,6 +267,7 @@ const ProfilePage = () => {
     handleProfileManagement('fetchFavoriteBooks');
     handleProfileManagement('fetchReadList');
     handleProfileManagement('fetchUserBooks');
+    handleProfileManagement('fetchFollowStats');
 
     // Global refresh function for other components
     window.refreshProfileReadList = () => {
@@ -311,7 +351,7 @@ const ProfilePage = () => {
           <div>
             <h2 className="text-2xl font-bold">@{user?.username}</h2>
             <p className="text-sm text-[#e5ded5]">
-              Following {user?.following} · Followers {user?.followers}
+              Following {followStats.following} · Followers {followStats.followers}
             </p>
             {selectedImage && (
               <div className="mt-2 flex gap-2">
@@ -380,122 +420,153 @@ const ProfilePage = () => {
 
         {/* Kitap Listesi */}
         {activeTab === "Books" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="space-y-6">
             {userBooks.length === 0 ? (
-              <div className="col-span-full text-center py-12">
+              <div className="text-center py-12">
                 <div className="text-6xl mb-4">📖</div>
                 <h3 className="text-xl font-semibold mb-2">Henüz kitabınız yok</h3>
                 <p className="text-gray-400">Kitaplarınızı buradan görebilirsiniz.</p>
               </div>
             ) : (
-              userBooks.map((book, index) => (
-                <BooksCard key={index} book={book} />
-              ))
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {getPaginatedData(userBooks, "Books").map((book, index) => (
+                    <BooksCard key={index} book={book} />
+                  ))}
+                </div>
+                {renderPagination(userBooks, "Books")}
+              </>
             )}
           </div>
         )}
 
         {activeTab === "Likes" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {likedBooks.map((book, index) => (
-              <BooksCard key={index} book={book} />
-            ))}
+          <div className="space-y-6">
+            {likedBooks.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">💔</div>
+                <h3 className="text-xl font-semibold mb-2">Henüz beğenilen kitap yok</h3>
+                <p className="text-gray-400">Beğendiğiniz kitaplar burada görünecek.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {getPaginatedData(likedBooks, "Likes").map((book, index) => (
+                    <BooksCard key={index} book={book} />
+                  ))}
+                </div>
+                {renderPagination(likedBooks, "Likes")}
+              </>
+            )}
           </div>
         )}
 
 
         {/* Yorumlar */}
         {activeTab === "Reviews" && (
-          <div className="mt-4">
+          <div className="space-y-6">
             {reviewsLoading ? (
-              <p className="text-center text-gray-400">Yorumlar yükleniyor...</p>
+              <div className="text-center py-12">
+                <p className="text-gray-400">Yorumlar yükleniyor...</p>
+              </div>
             ) : userReviews.length === 0 ? (
-              <p className="text-center text-gray-400">Henüz yorumunuz yok.</p>
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">💭</div>
+                <h3 className="text-xl font-semibold mb-2">Henüz yorumunuz yok</h3>
+                <p className="text-gray-400">Okuduğunuz kitaplara yorum yapabilirsiniz.</p>
+              </div>
             ) : (
-              <div className="space-y-4">
-                {userReviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="p-4 bg-[#3b2316] rounded-md shadow-md"
-                  >
-                    <div className="flex gap-4">
-                      {/* Kitap Kapağı */}
-                      <div className="w-16 h-24 rounded overflow-hidden flex-shrink-0">
-                        {review.book_image ? (
-                          <img
-                            src={review.book_image}
-                            alt={review.book_title || "Book"}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-bold text-center p-1">
-                            {review.book_title || "?"}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Review İçeriği */}
-                      <div className="flex-1">
-                        {/* Kitap Bilgileri */}
-                        <div className="mb-3">
-                          <h3 className="font-semibold text-lg text-white">
-                            {review.book_title || "Kitap Başlığı Yok"}
-                          </h3>
-                          <p className="text-sm text-gray-300">
-                            by {review.book_author || "Unknown Author"}
-                          </p>
+              <>
+                <div className="space-y-4">
+                  {getPaginatedData(userReviews, "Reviews", 2).map((review) => (
+                    <div
+                      key={review.id}
+                      className="p-4 bg-[#3b2316] rounded-md shadow-md"
+                    >
+                      <div className="flex gap-4">
+                        {/* Kitap Kapağı */}
+                        <div className="w-16 h-24 rounded overflow-hidden flex-shrink-0">
+                          {review.book_image ? (
+                            <img
+                              src={review.book_image}
+                              alt={review.book_title || "Book"}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex items-center justify-center text-white text-xs font-bold text-center p-1">
+                              {review.book_title || "?"}
+                            </div>
+                          )}
                         </div>
 
-                        {/* Review Başlığı */}
-                        <h4 className="text-md font-semibold text-[#f8f8f2] mb-2">
-                          {review.review_title || "Review Başlığı Yok"}
-                    </h4>
-
-                        {/* Review Metni */}
-                        <p className="text-sm text-gray-300 mb-3 leading-relaxed">
-                      {review.review_text || "Yorum Yok"}
-                    </p>
-
-                        {/* Rating ve Tarih */}
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <span className="text-yellow-400 text-sm">
-                              {"★".repeat(Math.floor(review.rating || 0))}
-                              {"☆".repeat(5 - Math.floor(review.rating || 0))}
-                            </span>
-                            <span className="text-xs text-gray-400 ml-1">
-                              ({review.rating || 0}/5)
-                      </span>
+                        {/* Review İçeriği */}
+                        <div className="flex-1">
+                          {/* Kitap Bilgileri */}
+                          <div className="mb-3">
+                            <h3 className="font-semibold text-lg text-white">
+                              {review.book_title || "Kitap Başlığı Yok"}
+                            </h3>
+                            <p className="text-sm text-gray-300">
+                              by {review.book_author || "Unknown Author"}
+                            </p>
                           </div>
-                      <span className="text-xs text-gray-400">
-                        {review.created_at
-                          ? new Date(review.created_at).toLocaleDateString("tr-TR")
-                          : "Tarih Yok"}
-                      </span>
+
+                          {/* Review Başlığı */}
+                          <h4 className="text-md font-semibold text-[#f8f8f2] mb-2">
+                            {review.review_title || "Review Başlığı Yok"}
+                          </h4>
+
+                          {/* Review Metni */}
+                          <p className="text-sm text-gray-300 mb-3 leading-relaxed">
+                            {review.review_text || "Yorum Yok"}
+                          </p>
+
+                          {/* Rating ve Tarih */}
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1">
+                              <span className="text-yellow-400 text-sm">
+                                {"★".repeat(Math.floor(review.rating || 0))}
+                                {"☆".repeat(5 - Math.floor(review.rating || 0))}
+                              </span>
+                              <span className="text-xs text-gray-400 ml-1">
+                                ({review.rating || 0}/5)
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-400">
+                              {review.created_at
+                                ? new Date(review.created_at).toLocaleDateString("tr-TR")
+                                : "Tarih Yok"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {renderPagination(userReviews, "Reviews", 2)}
+              </>
             )}
           </div>
         )}
 
         {/* Okuma Listesi */}
         {activeTab === "Readlist" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {console.log("Current readList state:", readList)}
+          <div className="space-y-6">
             {readList.length === 0 ? (
-              <div className="col-span-full text-center py-12">
+              <div className="text-center py-12">
                 <div className="text-6xl mb-4">📚</div>
                 <h3 className="text-xl font-semibold mb-2">Okuma listesi boş</h3>
                 <p className="text-gray-400">Kitap detay sayfalarından okuma listesine kitap ekleyebilirsiniz.</p>
               </div>
             ) : (
-              readList.map((book, index) => (
-                <BooksCard key={index} book={book} />
-              ))
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {getPaginatedData(readList, "Readlist").map((book, index) => (
+                    <BooksCard key={index} book={book} />
+                  ))}
+                </div>
+                {renderPagination(readList, "Readlist")}
+              </>
             )}
           </div>
         )}
