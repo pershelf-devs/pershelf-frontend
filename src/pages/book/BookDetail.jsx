@@ -12,8 +12,10 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
-  const [reviews, setReviews] = useState([]);
+  const [allReviews, setAllReviews] = useState([]); // Tüm review'ları sakla
   const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [currentReviewPage, setCurrentReviewPage] = useState(1);
+  const reviewsPerPage = 5; // Her sayfada 5 yorum göster
   const [bookStatus, setBookStatus] = useState({
     like: false,
     favorite: false,
@@ -198,10 +200,14 @@ const BookDetail = () => {
 
   const fetchReviews = async (bookId) => {
     try {
+      setReviewsLoading(true);
       const response = await api.post("/reviews/get/book-reviews", parseInt(bookId));
 
       if (response?.data?.status?.code === "0") {
-        const reviewsData = response.data.reviews || [];
+        let reviewsData = response.data.reviews || [];
+        
+        // Tarihe göre sırala (en yeni en üstte)
+        reviewsData = reviewsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         // Benzersiz user_id'leri topla
         const userIds = [...new Set(reviewsData.map(review => review.user_id))];
@@ -243,15 +249,14 @@ const BookDetail = () => {
               user_image_base64: usersMap[review.user_id]?.user_image_base64
             }));
             
-            setReviews(reviewsWithUsers);
+            setAllReviews(reviewsWithUsers);
             
           } catch (userFetchError) {
             console.error("❌ Kullanıcı bilgileri alınırken hata:", userFetchError);
-            // Hata durumunda review'ları user bilgisi olmadan göster
-            setReviews(reviewsData);
+            setAllReviews(reviewsData);
           }
         } else {
-          setReviews(reviewsData);
+          setAllReviews(reviewsData);
         }
       }
     } catch (error) {
@@ -278,6 +283,8 @@ const BookDetail = () => {
       const response = await api.post("/reviews/create/book-review", reviewPayload);
       if (response?.data?.code === "0") {
         toast.success("Yorumunuz başarıyla eklendi!");
+        // Yeni yorum eklendikten sonra ilk sayfaya dön ve yeniden yükle
+        setCurrentReviewPage(1);
         fetchReviews(book.id);
         setShowReviewForm(false);
         setReviewData({
@@ -440,6 +447,63 @@ const BookDetail = () => {
     fetchFromCoreBackend(id);
     fetchReviews(id);
   }, [id, fetchFromCoreBackend]);
+
+  // UserProfile benzeri pagination fonksiyonları
+  const getPaginatedReviews = () => {
+    const startIndex = (currentReviewPage - 1) * reviewsPerPage;
+    const endIndex = startIndex + reviewsPerPage;
+    return allReviews.slice(startIndex, endIndex);
+  };
+
+  const getTotalReviewPages = () => {
+    return Math.ceil(allReviews.length / reviewsPerPage);
+  };
+
+  const handleReviewPageChange = (pageNumber) => {
+    setCurrentReviewPage(pageNumber);
+  };
+
+  const renderReviewPagination = () => {
+    const totalPages = getTotalReviewPages();
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-6">
+        <button
+          onClick={() => handleReviewPageChange(currentReviewPage - 1)}
+          disabled={currentReviewPage === 1}
+          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          ←
+        </button>
+        
+        {[...Array(totalPages)].map((_, index) => {
+          const pageNum = index + 1;
+          return (
+            <button
+              key={pageNum}
+              onClick={() => handleReviewPageChange(pageNum)}
+              className={`px-3 py-2 rounded-lg transition-colors ${
+                currentReviewPage === pageNum
+                  ? 'bg-white text-gray-900'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+            >
+              {pageNum}
+            </button>
+          );
+        })}
+        
+        <button
+          onClick={() => handleReviewPageChange(currentReviewPage + 1)}
+          disabled={currentReviewPage === totalPages}
+          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          →
+        </button>
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (!currentUser || !book || !(book.id || book._id)) {
@@ -762,9 +826,16 @@ const BookDetail = () => {
                   <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-white/70">Yorumlar yükleniyor...</p>
                 </div>
-              ) : reviews.length > 0 ? (
+              ) : allReviews.length > 0 ? (
                 <div className="space-y-6">
-                  {reviews.map((review) => renderReviewCard(review))}
+                  <div className="space-y-6">
+                    {getPaginatedReviews().map((review, index) => (
+                      <div key={`${review.id || review._id}-${index}`}>
+                        {renderReviewCard(review)}
+                      </div>
+                    ))}
+                  </div>
+                  {renderReviewPagination()}
                 </div>
               ) : (
                 <div className="text-center py-8 bg-white/5 rounded-xl">

@@ -1,26 +1,10 @@
 import React from "react";
 
-const reviews = [
-  { user: "Mevlutcan", book: "1984", rating: 3, comment: "Gerçekten düşündürücü ama biraz ağırdı." },
-  { user: "Ataberk", book: "Sapiens", rating: 5, comment: "Tarihi bu kadar akıcı anlatmak büyük başarı!" },
-];
+// TODO: Bu kısımda arkadaşlarımızın yorumları gelecek
+const reviews = [];
 
-const members = [
-  {
-    name: "Mevlutcan",
-    avatar: "https://via.placeholder.com/100",
-    books: 120,
-    reviews: 45,
-    favorites: ["1984", "The Book Thief", "Sapiens"],
-  },
-  {
-    name: "Ataberk",
-    avatar: "https://via.placeholder.com/100",
-    books: 80,
-    reviews: 20,
-    favorites: ["Sapiens", "Brave New World", "Dune"],
-  },
-];
+// TODO: Bu kısımda rastgele insanlar gözükecek
+const members = [];
 
 const SocialPage = () => {
   return (
@@ -34,51 +18,67 @@ const SocialPage = () => {
       {/* İçerik */}
       <div className="relative z-10 max-w-6xl mx-auto py-20 px-6 space-y-16">
 
-        {/* Reviews */}
+        {/* Reviews - Arkadaşların yorumları gelecek */}
         <section>
           <h2 className="text-3xl font-bold mb-8">Recent Reviews</h2>
           <div className="space-y-6">
-            {reviews.map((rev, index) => (
-              <div key={index} className="bg-[#3b2316]/90 p-6 rounded-lg shadow space-y-2">
-                <p>
-                  <span className="font-bold text-white">{rev.user}</span> reviewed{" "}
-                  <span className="italic">{rev.book}</span>
-                </p>
-                <div className="text-yellow-400">
-                  {"★".repeat(rev.rating)}
-                  {"☆".repeat(5 - rev.rating)}
+            {reviews.length > 0 ? (
+              reviews.map((rev, index) => (
+                <div key={index} className="bg-[#3b2316]/90 p-6 rounded-lg shadow space-y-2">
+                  <p>
+                    <span className="font-bold text-white">{rev.user}</span> reviewed{" "}
+                    <span className="italic">{rev.book}</span>
+                  </p>
+                  <div className="text-yellow-400">
+                    {"★".repeat(rev.rating)}
+                    {"☆".repeat(5 - rev.rating)}
+                  </div>
+                  <p className="text-sm text-[#e5ded5]">{rev.comment}</p>
                 </div>
-                <p className="text-sm text-[#e5ded5]">{rev.comment}</p>
+              ))
+            ) : (
+              <div className="bg-[#3b2316]/90 p-8 rounded-lg shadow text-center">
+                <div className="text-4xl mb-4">👥</div>
+                <h3 className="text-xl font-semibold mb-2">Arkadaşlarının Yorumları</h3>
+                <p className="text-[#d4c0aa]">Burada arkadaşlarının son yorumları görünecek</p>
               </div>
-            ))}
+            )}
           </div>
         </section>
 
-        {/* Featured Members */}
+        {/* Featured Members - Rastgele insanlar gözükecek */}
         <section>
           <h2 className="text-3xl font-bold mb-8">Featured Members</h2>
           <div className="flex flex-wrap gap-10">
-            {members.map((m, i) => (
-              <div key={i} className="text-center w-40">
-                <img
-                  src={m.avatar}
-                  alt={m.name}
-                  className="w-24 h-24 mx-auto rounded-full object-cover mb-2 border-2 border-white"
-                />
-                <h3 className="font-semibold text-white">{m.name}</h3>
-                <p className="text-sm text-[#d4c0aa]">{m.books} books · {m.reviews} reviews</p>
-                <div className="flex gap-1 mt-2 justify-center flex-wrap">
-                  {m.favorites.map((fav, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white/10 text-xs rounded-md px-2 py-1 text-white whitespace-nowrap"
-                    >
-                      {fav}
-                    </div>
-                  ))}
+            {members.length > 0 ? (
+              members.map((m, i) => (
+                <div key={i} className="text-center w-40">
+                  <img
+                    src={m.avatar}
+                    alt={m.name}
+                    className="w-24 h-24 mx-auto rounded-full object-cover mb-2 border-2 border-white"
+                  />
+                  <h3 className="font-semibold text-white">{m.name}</h3>
+                  <p className="text-sm text-[#d4c0aa]">{m.books} books · {m.reviews} reviews</p>
+                  <div className="flex gap-1 mt-2 justify-center flex-wrap">
+                    {m.favorites.map((fav, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white/10 text-xs rounded-md px-2 py-1 text-white whitespace-nowrap"
+                      >
+                        {fav}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="w-full bg-[#3b2316]/90 p-8 rounded-lg shadow text-center">
+                <div className="text-4xl mb-4">🌟</div>
+                <h3 className="text-xl font-semibold mb-2">Öne Çıkan Üyeler</h3>
+                <p className="text-[#d4c0aa]">Burada rastgele kullanıcılar görünecek</p>
               </div>
-            ))}
+            )}
           </div>
         </section>
       </div>
