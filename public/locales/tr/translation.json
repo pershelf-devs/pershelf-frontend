@@ -180,6 +180,35 @@
   "no_content": "İçerik bulunamadı",
   
   "read": "Okunan",
-  "review": "Yorum",
-  "favorite": "Favori"
+  "review": "İnceleme",
+  "favorite": "Favori",
+
+  "profile_photo_remove": "Fotoğrafı Kaldır",
+  "profile_photo_upload": "Fotoğraf Yükle",
+  "profile_photo_selected": "Seçilen Profil",
+  "profile_photo_save": "Kaydet",
+  "profile_photo_cancel": "İptal",
+  "profile_photo_saving": "Kaydediliyor...",
+  "profile_photo_size_error": "Resim boyutu 5MB'dan küçük olmalıdır.",
+  "profile_photo_upload_error": "Resim yüklenirken bir hata oluştu.",
+  "profile_photo_remove_error": "Resim kaldırılırken bir hata oluştu.",
+
+  "books": "Kitaplar",
+  "likes": "Beğeniler",
+  "readlist": "Okuma Listesi",
+
+  "no_books_yet": "Henüz kitabınız yok",
+  "no_books_description": "Kitaplarınızı buradan görebilirsiniz.",
+  "no_liked_books_yet": "Henüz beğenilen kitap yok",
+  "no_liked_books_description": "Beğendiğiniz kitaplar burada görünecek.",
+  "no_reviews_yet_profile": "Henüz yorumunuz yok",
+  "no_reviews_description": "Okuduğunuz kitaplara yorum yapabilirsiniz.",
+  "no_readlist_books": "Okuma listesi boş",
+  "no_readlist_description": "Kitap detay sayfalarından okuma listesine kitap ekleyebilirsiniz.",
+
+  "reviews_loading": "Yorumlar yükleniyor...",
+  "book_title_missing": "Kitap Başlığı Yok",
+  "review_title_missing": "Review Başlığı Yok",
+  "review_text_missing": "Yorum Yok",
+  "date_missing": "Tarih Yok"
 }

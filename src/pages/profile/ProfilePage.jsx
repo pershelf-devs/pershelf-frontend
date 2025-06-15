@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import BooksCard from '../../components/elements/BooksCard';
 import usePagination from '../../hooks/usePagination.jsx';
 
 const ProfilePage = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('books');
   const { currentUser } = useSelector((state) => state.user);
   const [user, setUser] = useState(null);
@@ -180,7 +182,7 @@ const ProfilePage = () => {
         const file = data;
         if (file) {
           if (file.size > 5 * 1024 * 1024) {
-            alert("Resim boyutu 5MB'dan küçük olmalıdır.");
+            alert(t("profile_photo_size_error"));
             return;
           }
 
@@ -234,7 +236,7 @@ const ProfilePage = () => {
           };
         } catch (error) {
           console.error("Resim yükleme hatası:", error);
-          alert("Resim yüklenirken bir hata oluştu.");
+          alert(t("profile_photo_upload_error"));
         } finally {
           setIsSaving(false);
         }
@@ -248,7 +250,7 @@ const ProfilePage = () => {
           setUser(prev => ({ ...prev, image_base64: null }));
         } catch (error) {
           console.error("Resim kaldırma hatası:", error);
-          alert("Resim kaldırılırken bir hata oluştu.");
+          alert(t("profile_photo_remove_error"));
         }
         break;
 
@@ -298,7 +300,7 @@ const ProfilePage = () => {
               {selectedImage ? (
                 <img
                   src={selectedImage}
-                  alt="Seçilen Profil"
+                  alt={t("profile_photo_selected")}
                   className="w-full h-full object-cover object-center"
                   style={{ imageRendering: 'auto' }}
                 />
@@ -320,7 +322,7 @@ const ProfilePage = () => {
                 <button
                   onClick={() => handleProfileManagement('handleRemoveImage')}
                   className="bg-red-500 p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
-                  title="Fotoğrafı Kaldır"
+                  title={t("profile_photo_remove")}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -348,7 +350,7 @@ const ProfilePage = () => {
           <div>
             <h2 className="text-2xl font-bold">@{user?.username}</h2>
             <p className="text-sm text-[#e5ded5]">
-              Following {followStats.following} · Followers {followStats.followers}
+              {t("following")} {followStats.following} · {t("followers")} {followStats.followers}
             </p>
             {selectedImage && (
               <div className="mt-2 flex gap-2">
@@ -366,14 +368,14 @@ const ProfilePage = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Kaydediliyor...
+                      {t("profile_photo_saving")}
                     </>
                   ) : (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      Kaydet
+                      {t("profile_photo_save")}
                     </>
                   )}
                 </button>
@@ -381,7 +383,7 @@ const ProfilePage = () => {
                   onClick={() => setSelectedImage(null)}
                   className="px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
                 >
-                  İptal
+                  {t("profile_photo_cancel")}
                 </button>
               </div>
             )}
@@ -391,7 +393,7 @@ const ProfilePage = () => {
 
         {/* Favori Kitaplar */}
         <div className="mb-12">
-          <h3 className="text-xl font-semibold mb-4">Favorite Books</h3>
+          <h3 className="text-xl font-semibold mb-4">{t("favorite_books")}</h3>
           <div className="flex gap-4 flex-wrap">
             {favoriteBooks.map((book, index) => (
               <BooksCard key={index} book={book} className="min-w-32" />
@@ -401,16 +403,21 @@ const ProfilePage = () => {
 
         {/* Sekmeler */}
         <div className="flex gap-6 mb-6 border-b border-[#a65b38] text-sm">
-          {["Books", "Likes", "Reviews", "Readlist"].map((tab) => (
+          {[
+            { key: "Books", label: t("books") },
+            { key: "Likes", label: t("likes") },
+            { key: "Reviews", label: t("reviews") },
+            { key: "Readlist", label: t("readlist") }
+          ].map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 ${activeTab === tab
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`pb-2 ${activeTab === tab.key
                 ? "font-bold border-b-2 border-white text-white"
                 : "text-[#d4c0aa]"
                 }`}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -421,8 +428,8 @@ const ProfilePage = () => {
             {userBooks.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📖</div>
-                <h3 className="text-xl font-semibold mb-2">Henüz kitabınız yok</h3>
-                <p className="text-gray-400">Kitaplarınızı buradan görebilirsiniz.</p>
+                <h3 className="text-xl font-semibold mb-2">{t("no_books_yet")}</h3>
+                <p className="text-gray-400">{t("no_books_description")}</p>
               </div>
             ) : (
               <>
@@ -442,8 +449,8 @@ const ProfilePage = () => {
             {likedBooks.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">💔</div>
-                <h3 className="text-xl font-semibold mb-2">Henüz beğenilen kitap yok</h3>
-                <p className="text-gray-400">Beğendiğiniz kitaplar burada görünecek.</p>
+                <h3 className="text-xl font-semibold mb-2">{t("no_liked_books_yet")}</h3>
+                <p className="text-gray-400">{t("no_liked_books_description")}</p>
               </div>
             ) : (
               <>
@@ -464,13 +471,13 @@ const ProfilePage = () => {
           <div className="space-y-6">
             {reviewsLoading ? (
               <div className="text-center py-12">
-                <p className="text-gray-400">Yorumlar yükleniyor...</p>
+                <p className="text-gray-400">{t("reviews_loading")}</p>
               </div>
             ) : userReviews.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">💭</div>
-                <h3 className="text-xl font-semibold mb-2">Henüz yorumunuz yok</h3>
-                <p className="text-gray-400">Okuduğunuz kitaplara yorum yapabilirsiniz.</p>
+                <h3 className="text-xl font-semibold mb-2">{t("no_reviews_yet_profile")}</h3>
+                <p className="text-gray-400">{t("no_reviews_description")}</p>
               </div>
             ) : (
               <>
@@ -501,21 +508,21 @@ const ProfilePage = () => {
                           {/* Kitap Bilgileri */}
                           <div className="mb-3">
                             <h3 className="font-semibold text-lg text-white">
-                              {review.book_title || "Kitap Başlığı Yok"}
+                              {review.book_title || t("book_title_missing")}
                             </h3>
                             <p className="text-sm text-gray-300">
-                              by {review.book_author || "Unknown Author"}
+                              by {review.book_author || t("unknown_author")}
                             </p>
                           </div>
 
                           {/* Review Başlığı */}
                           <h4 className="text-md font-semibold text-[#f8f8f2] mb-2">
-                            {review.review_title || "Review Başlığı Yok"}
+                            {review.review_title || t("review_title_missing")}
                           </h4>
 
                           {/* Review Metni */}
                           <p className="text-sm text-gray-300 mb-3 leading-relaxed">
-                            {review.review_text || "Yorum Yok"}
+                            {review.review_text || t("review_text_missing")}
                           </p>
 
                           {/* Rating ve Tarih */}
@@ -532,7 +539,7 @@ const ProfilePage = () => {
                             <span className="text-xs text-gray-400">
                               {review.created_at
                                 ? new Date(review.created_at).toLocaleDateString("tr-TR")
-                                : "Tarih Yok"}
+                                : t("date_missing")}
                             </span>
                           </div>
                         </div>
@@ -552,8 +559,8 @@ const ProfilePage = () => {
             {readList.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📚</div>
-                <h3 className="text-xl font-semibold mb-2">Okuma listesi boş</h3>
-                <p className="text-gray-400">Kitap detay sayfalarından okuma listesine kitap ekleyebilirsiniz.</p>
+                <h3 className="text-xl font-semibold mb-2">{t("no_readlist_books")}</h3>
+                <p className="text-gray-400">{t("no_readlist_description")}</p>
               </div>
             ) : (
               <>

@@ -180,5 +180,34 @@
   
   "read": "Read",
   "review": "Review",
-  "favorite": "Favorite"
+  "favorite": "Favorite",
+
+  "profile_photo_remove": "Remove Photo",
+  "profile_photo_upload": "Upload Photo",
+  "profile_photo_selected": "Selected Profile",
+  "profile_photo_save": "Save",
+  "profile_photo_cancel": "Cancel",
+  "profile_photo_saving": "Saving...",
+  "profile_photo_size_error": "Image size must be smaller than 5MB.",
+  "profile_photo_upload_error": "An error occurred while uploading the image.",
+  "profile_photo_remove_error": "An error occurred while removing the image.",
+
+  "books": "Books",
+  "likes": "Likes",
+  "readlist": "Reading List",
+
+  "no_books_yet": "No books yet",
+  "no_books_description": "You can see your books here.",
+  "no_liked_books_yet": "No liked books yet",
+  "no_liked_books_description": "Books you like will appear here.",
+  "no_reviews_yet_profile": "No reviews yet",
+  "no_reviews_description": "You can review the books you've read.",
+  "no_readlist_books": "Reading list is empty",
+  "no_readlist_description": "You can add books to your reading list from book detail pages.",
+
+  "reviews_loading": "Loading reviews...",
+  "book_title_missing": "No Book Title",
+  "review_title_missing": "No Review Title",
+  "review_text_missing": "No Comment",
+  "date_missing": "No Date"
 }
