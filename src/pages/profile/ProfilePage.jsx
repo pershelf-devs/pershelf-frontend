@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import BooksCard from '../../components/elements/BooksCard';
-import usePagination from '../../hooks/usePagination';
+import usePagination from '../../hooks/usePagination.jsx';
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('books');

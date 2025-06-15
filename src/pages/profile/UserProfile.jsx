@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import BooksCard from '../../components/elements/BooksCard';
-import usePagination from '../../hooks/usePagination';
+import usePagination from '../../hooks/usePagination.jsx';
 
 const UserProfile = () => {
   const [searchParams] = useSearchParams();

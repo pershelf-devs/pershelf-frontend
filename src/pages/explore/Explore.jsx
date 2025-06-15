@@ -4,6 +4,8 @@ import { apiCache } from "../../utils/apiCache";
 import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
+import usePagination from "../../hooks/usePagination.jsx";
 
 const Explore = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +18,10 @@ const Explore = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [bookStatuses, setBookStatuses] = useState({});
   const { currentUser } = useSelector((state) => state.user);
+  const { t } = useTranslation();
+
+  // Pagination hook'u - search results için 9 kitap per sayfa
+  const { getPaginatedData, renderPagination } = usePagination(9);
 
   useEffect(() => {
     // Eş zamanlı olarak hem popüler kitapları hem de kategorileri çek
@@ -592,8 +598,11 @@ const Explore = () => {
             )}
 
             {!searchLoading && searchResults.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchResults.map(renderSearchBookCard)}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getPaginatedData(searchResults, "SearchResults").map(renderSearchBookCard)}
+                </div>
+                {renderPagination(searchResults, "SearchResults")}
               </div>
             )}
           </section>

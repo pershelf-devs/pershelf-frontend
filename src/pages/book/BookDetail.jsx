@@ -4,7 +4,7 @@ import { api } from "../../api/api";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
-import usePagination from '../../hooks/usePagination';
+import usePagination from '../../hooks/usePagination.jsx';
 
 const BookDetail = () => {
   const [searchParams] = useSearchParams();

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../../api/api";
+import usePagination from "../../hooks/usePagination.jsx";
 
 const Category = () => {
   const {t} = useTranslation();
@@ -9,6 +10,9 @@ const Category = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Pagination hook'u - sayfa başına 12 kitap
+  const { getPaginatedData, renderPagination } = usePagination(12);
 
   useEffect(() => {
     if (name) {
@@ -92,100 +96,105 @@ const Category = () => {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {books.map((book) => {
-          // Resim URL'sini belirle
-          let imageUrl = "/images/book-placeholder.png";
-          
-          if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
-            imageUrl = book.image_base64;
-          } else if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
-            imageUrl = book.image_url;
-          } else if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
-            imageUrl = book.cover_image;
-          } else if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
-            imageUrl = book.image;
-          }
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {getPaginatedData(books, "Books").map((book) => {
+            // Resim URL'sini belirle
+            let imageUrl = "/images/book-placeholder.png";
+            
+            if (book.image_base64 && book.image_base64.startsWith('data:image/')) {
+              imageUrl = book.image_base64;
+            } else if (book.image_url && book.image_url !== "" && !book.image_url.includes("placeholder")) {
+              imageUrl = book.image_url;
+            } else if (book.cover_image && book.cover_image !== "" && !book.cover_image.includes("placeholder")) {
+              imageUrl = book.cover_image;
+            } else if (book.image && book.image !== "" && !book.image.includes("placeholder")) {
+              imageUrl = book.image;
+            }
 
-          const hasRealImage = imageUrl !== "/images/book-placeholder.png";
+            const hasRealImage = imageUrl !== "/images/book-placeholder.png";
 
-          return (
-            <Link
-              key={book._id || book.id}
-              to={`/book/details?id=${book._id || book.id}`}
-              className="group bg-white/10 backdrop-blur-md p-4 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-105"
-            >
-              {/* Book Cover */}
-              <div className="relative w-full h-80 rounded-md mb-4 overflow-hidden">
-                <img
-                  src={imageUrl}
-                  alt={book.title || t("books")}
-                  className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-                
-                <div 
-                  className={`w-full h-full ${hasRealImage ? 'hidden' : 'flex'} bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex-col justify-between p-6 text-white relative overflow-hidden`}
-                  style={{ display: hasRealImage ? 'none' : 'flex' }}
-                >
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-3 left-3 w-10 h-10 border-2 border-white/30 rounded"></div>
-                    <div className="absolute bottom-3 right-3 w-8 h-8 border border-white/30 rounded-full"></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 border border-white/20 rounded-full"></div>
-                  </div>
+            return (
+              <Link
+                key={book._id || book.id}
+                to={`/book/details?id=${book._id || book.id}`}
+                className="group bg-white/10 backdrop-blur-md p-4 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-105"
+              >
+                {/* Book Cover */}
+                <div className="relative w-full h-80 rounded-md mb-4 overflow-hidden">
+                  <img
+                    src={imageUrl}
+                    alt={book.title || t("books")}
+                    className={`w-full h-full object-contain bg-gradient-to-br from-gray-800 to-gray-900 ${hasRealImage ? 'block' : 'hidden'}`}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
                   
-                  <div className="relative z-10 flex-1 flex items-center justify-center">
-                    <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
-                      {book.title || t("unknown_title")}
-                    </h3>
-                  </div>
-                  
-                  <div className="relative z-10 mt-auto">
-                    <div className="h-px bg-white/30 mb-4"></div>
-                    <p className="text-sm opacity-90 font-medium text-center">
-                      {book.author || t("unknown_author")}
-                    </p>
+                  <div 
+                    className={`w-full h-full ${hasRealImage ? 'hidden' : 'flex'} bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 flex-col justify-between p-6 text-white relative overflow-hidden`}
+                    style={{ display: hasRealImage ? 'none' : 'flex' }}
+                  >
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-3 left-3 w-10 h-10 border-2 border-white/30 rounded"></div>
+                      <div className="absolute bottom-3 right-3 w-8 h-8 border border-white/30 rounded-full"></div>
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 border border-white/20 rounded-full"></div>
+                    </div>
+                    
+                    <div className="relative z-10 flex-1 flex items-center justify-center">
+                      <h3 className="text-lg font-bold leading-tight text-center line-clamp-4">
+                        {book.title || t("unknown_title")}
+                      </h3>
+                    </div>
+                    
+                    <div className="relative z-10 mt-auto">
+                      <div className="h-px bg-white/30 mb-4"></div>
+                      <p className="text-sm opacity-90 font-medium text-center">
+                        {book.author || t("unknown_author")}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Book Info */}
-              <div>
-                <h3 className="text-white font-semibold text-lg group-hover:text-blue-300 transition-colors line-clamp-2 mb-2">
-                  {book.title || t("unkown_title")}
-                </h3>
-                <p className="text-white/70 text-sm mb-2">
-                  {book.author || t("unknown_author")}
-                </p>
-                
-                {book.genre && (
-                  <span className="inline-block bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded mb-2">
-                    {book.genre}
-                  </span>
-                )}
-                
-                {book.published_year && (
-                  <p className="text-white/60 text-sm mb-2">
-                    {book.published_year}
+                {/* Book Info */}
+                <div>
+                  <h3 className="text-white font-semibold text-lg group-hover:text-blue-300 transition-colors line-clamp-2 mb-2">
+                    {book.title || t("unkown_title")}
+                  </h3>
+                  <p className="text-white/70 text-sm mb-2">
+                    {book.author || t("unknown_author")}
                   </p>
-                )}
-                
-                {book.rating && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-yellow-400 text-sm">
-                      {"★".repeat(Math.floor(book.rating))}
-                      {"☆".repeat(5 - Math.floor(book.rating))}
+                  
+                  {book.genre && (
+                    <span className="inline-block bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded mb-2">
+                      {book.genre}
                     </span>
-                    <span className="text-white/60 text-sm">({book.rating})</span>
-                  </div>
-                )}
-              </div>
-            </Link>
-          );
-        })}
+                  )}
+                  
+                  {book.published_year && (
+                    <p className="text-white/60 text-sm mb-2">
+                      {book.published_year}
+                    </p>
+                  )}
+                  
+                  {book.rating && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-yellow-400 text-sm">
+                        {"★".repeat(Math.floor(book.rating))}
+                        {"☆".repeat(5 - Math.floor(book.rating))}
+                      </span>
+                      <span className="text-white/60 text-sm">({book.rating})</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+        
+        {/* Pagination */}
+        {renderPagination(books, "Books")}
       </div>
     );
   }, [books, error, loading, name, t]);
