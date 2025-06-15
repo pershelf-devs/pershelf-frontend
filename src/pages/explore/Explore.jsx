@@ -455,56 +455,58 @@ const Explore = () => {
         key={book._id || book.id}
         className="group relative bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105"
       >
-        {/* Buttons */}
-        <div className="absolute top-2 right-2 flex gap-2 z-10">
-          {/* Read Button (Eye) */}
+        {/* Read Status - Sol üst köşe */}
+        <div className="absolute top-2 left-2 z-10">
           <button
-            className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${bookStatuses[bookId]?.read
+            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-500 hover:scale-110 cursor-pointer ${bookStatuses[bookId]?.read
               ? 'bg-green-600/90 text-white shadow-lg shadow-green-500/30'
               : 'bg-gray-500/30 text-gray-400 hover:bg-gray-500/50'
               }`}
             onClick={(e) => handleRead(book, e)}
             title={bookStatuses[bookId]?.read ? 'Okudum işaretini kaldır' : 'Okudum olarak işaretle'}
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
             </svg>
+            {bookStatuses[bookId]?.read && (
+              <span className="text-xs font-medium">Okundu</span>
+            )}
           </button>
-
-          {/* Only show like/favorite buttons if book is read */}
-          {isRead && (
-            <>
-              {/* Like Button */}
-              <button
-                className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${bookStatuses[bookId]?.like
-                  ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30'
-                  : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
-                  }`}
-                onClick={(e) => handleLike(book, e)}
-                title={bookStatuses[bookId]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
-              >
-                <span className="text-xl">
-                  {bookStatuses[bookId]?.like ? '❤️' : '🤍'}
-                </span>
-              </button>
-              
-              {/* Favorite Button */}
-              <button
-                onClick={(e) => handleFavorite(book, e)}
-                className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${bookStatuses[bookId]?.favorite
-                  ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
-                  : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
-                  }`}
-                title={bookStatuses[bookId]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
-              >
-                <span className={`text-xl transition-all duration-300 ${bookStatuses[bookId]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
-                  {bookStatuses[bookId]?.favorite ? '★' : '☆'}
-                </span>
-              </button>
-            </>
-          )}
         </div>
+
+        {/* Like/Favorite Buttons - Sağ üst köşe */}
+        {isRead && (
+          <div className="absolute top-2 right-2 flex gap-2 z-10">
+            {/* Like Button */}
+            <button
+              className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${bookStatuses[bookId]?.like
+                ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30'
+                : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+                }`}
+              onClick={(e) => handleLike(book, e)}
+              title={bookStatuses[bookId]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
+            >
+              <span className="text-xl">
+                {bookStatuses[bookId]?.like ? '❤️' : '🤍'}
+              </span>
+            </button>
+            
+            {/* Favorite Button */}
+            <button
+              onClick={(e) => handleFavorite(book, e)}
+              className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${bookStatuses[bookId]?.favorite
+                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
+                }`}
+              title={bookStatuses[bookId]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+            >
+              <span className={`text-xl transition-all duration-300 ${bookStatuses[bookId]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
+                {bookStatuses[bookId]?.favorite ? '★' : '☆'}
+              </span>
+            </button>
+          </div>
+        )}
 
         <Link
           to={`/book/details?id=${book._id || book.id}`}
@@ -527,7 +529,7 @@ const Explore = () => {
             </div>
 
             {/* Book Info */}
-            <div className="flex-1 min-w-0 pr-44">
+            <div className="flex-1 min-w-0 pr-20">
               <h3 className="text-white font-semibold text-sm group-hover:text-blue-300 transition-colors line-clamp-2">
                 {book.title || "Unknown Title"}
               </h3>
@@ -632,56 +634,58 @@ const Explore = () => {
                         key={book.id || book._id || index}
                         className="relative bg-white/10 backdrop-blur-md p-4 rounded-xl shadow hover:scale-105 transition-transform"
                       >
-                        {/* Buttons */}
-                        <div className="absolute bottom-4 right-4 flex gap-2 z-10">
-                          {/* Read Button (Eye) */}
+                        {/* Read Status - Sol üst köşe */}
+                        <div className="absolute top-4 left-4 z-10">
                           <button
-                            className={`p-2 rounded-full transition-all duration-500 hover:scale-110 cursor-pointer ${bookStatuses[book.id || book._id]?.read
-                              ? 'bg-green-600/90 text-white shadow-lg shadow-green-500/30 -translate-x-0'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-500 hover:scale-110 cursor-pointer ${bookStatuses[book.id || book._id]?.read
+                              ? 'bg-green-600/90 text-white shadow-lg shadow-green-500/30'
                               : 'bg-gray-500/30 text-gray-400 hover:bg-gray-500/50'
                               }`}
                             onClick={(e) => handleRead(book, e)}
                             title={bookStatuses[book.id || book._id]?.read ? 'Okudum işaretini kaldır' : 'Okudum olarak işaretle'}
                           >
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
                             </svg>
+                            {bookStatuses[book.id || book._id]?.read && (
+                              <span className="text-xs font-medium">Okundu</span>
+                            )}
                           </button>
-
-                          {/* Only show like/favorite buttons if book is read */}
-                          {bookStatuses[book.id || book._id]?.read && (
-                            <>
-                              {/* Like Button */}
-                              <button
-                                className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer  transform ${bookStatuses[book.id || book._id]?.like
-                                  ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30'
-                                  : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
-                                  }`}
-                                onClick={(e) => handleLike(book, e)}
-                                title={bookStatuses[book.id || book._id]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
-                              >
-                                <span className="text-xl">
-                                  {bookStatuses[book.id || book._id]?.like ? '❤️' : '🤍'}
-                                </span>
-                              </button>
-                              
-                              {/* Favorite Button */}
-                              <button
-                                className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${bookStatuses[book.id || book._id]?.favorite
-                                  ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
-                                  : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
-                                  }`}
-                                onClick={(e) => handleFavorite(book, e)}
-                                title={bookStatuses[book.id || book._id]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
-                              >
-                                <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
-                                  {bookStatuses[book.id || book._id]?.favorite ? '★' : '☆'}
-                                </span>
-                              </button>
-                            </>
-                          )}
                         </div>
+
+                        {/* Like/Favorite Buttons - Sağ alt köşe */}
+                        {bookStatuses[book.id || book._id]?.read && (
+                          <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+                            {/* Like Button */}
+                            <button
+                              className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer  transform ${bookStatuses[book.id || book._id]?.like
+                                ? 'bg-amber-800/90 text-white shadow-lg shadow-red-500/30'
+                                : 'bg-red-500/20 text-white/80 hover:bg-red-500/30'
+                                }`}
+                              onClick={(e) => handleLike(book, e)}
+                              title={bookStatuses[book.id || book._id]?.like ? 'Beğeniyi Kaldır' : 'Beğen'}
+                            >
+                              <span className="text-xl">
+                                {bookStatuses[book.id || book._id]?.like ? '❤️' : '🤍'}
+                              </span>
+                            </button>
+                            
+                            {/* Favorite Button */}
+                            <button
+                              className={`p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${bookStatuses[book.id || book._id]?.favorite
+                                ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-300 shadow-lg shadow-yellow-500/20'
+                                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/20'
+                                }`}
+                              onClick={(e) => handleFavorite(book, e)}
+                              title={bookStatuses[book.id || book._id]?.favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                            >
+                              <span className={`text-xl transition-all duration-300 ${bookStatuses[book.id || book._id]?.favorite ? 'animate-bounce' : 'group-hover:rotate-12'}`}>
+                                {bookStatuses[book.id || book._id]?.favorite ? '★' : '☆'}
+                              </span>
+                            </button>
+                          </div>
+                        )}
 
                         <Link
                           to={`/book/details?id=${book.id || book._id}`}

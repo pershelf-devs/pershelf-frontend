@@ -9,6 +9,7 @@
   "check_back_later": "Daha sonra tekrar uğra",
   "create_your_pershelf_account": "Pershelf hesabınızı oluşturun",
   "confirm_password": "Şifreyi tekrar giriniz",
+  "confirm_password_help": "Şifrenizi onaylayın",
   "dont_have_an_account": "Hesabınız yok mu?",
   "didnt_like_it": "Beğenmedim",
   "email": "Email",
@@ -55,5 +56,52 @@
   "unknown_author":"Bilinmeyen Yazar",
   "unknown_title": "Bilinmeyen Başlık",
   "welcome_back": "Tekrar hoşgeldin",
-  "your_journey": "Yolculuğunuz"
+  "your_journey": "Yolculuğunuz",
+  
+  "form_completion": "Form Tamamlanma",
+  "form_completion_not_started": "Başlamadınız",
+  "form_completion_beginning": "Başlangıç",
+  "form_completion_in_progress": "Devam ediyor",
+  "form_completion_almost_done": "Neredeyse bitti",
+  "form_completion_completed": "Tamamlandı",
+  
+  "name_required": "İsim gerekli",
+  "name_min_length": "İsim en az 3 karakter olmalı",
+  "name_help": "İsim en az 3 karakter olmalı",
+  
+  "surname_required": "Soyisim gerekli",
+  "surname_min_length": "Soyisim en az 3 karakter olmalı",
+  "surname_help": "Soyisim gerekli",
+  
+  "username_required": "Kullanıcı adı gerekli",
+  "username_min_length": "Kullanıcı adı en az 5 karakter olmalı",
+  "username_invalid_chars": "Sadece harf, rakam ve alt çizgi kullanılabilir",
+  "username_help": "Kullanıcı adı gerekli",
+  
+  "email_required": "E-posta gerekli",
+  "email_invalid": "Geçerli bir e-posta adresi girin",
+  "email_help": "E-posta gerekli",
+  
+  "password_required": "Şifre gerekli",
+  "password_min_length": "Şifre en az 8 karakter olmalı",
+  "password_min_length_login": "Şifre en az 6 karakter olmalı",
+  "password_needs_lowercase": "En az bir küçük harf içermeli",
+  "password_needs_uppercase": "En az bir büyük harf içermeli",
+  "password_needs_number": "En az bir rakam içermeli",
+  "password_help": "8+ karakter, büyük harf, küçük harf ve rakam içermeli",
+  
+  "confirm_password_required": "Şifre onayı gerekli",
+  "confirm_password_mismatch": "Şifreler eşleşmiyor",
+  
+  "registering": "Kaydediliyor...",
+  "logging_in": "Giriş yapılıyor...",
+  "registration_successful": "Kayıt Başarılı!",
+  "login_successful": "Giriş Başarılı!",
+  "redirecting_to_login": "Giriş sayfasına yönlendiriliyorsunuz...",
+  "redirecting_to_dashboard": "Dashboard'a yönlendiriliyorsunuz...",
+  
+  "quick_actions": "Hızlı Eylemler",
+  "search_books": "Kitap Ara",
+  "my_profile": "Profilim",
+  "social": "Sosyal"
 }

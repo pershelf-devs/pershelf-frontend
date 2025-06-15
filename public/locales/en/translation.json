@@ -8,6 +8,7 @@
   "community": "Community",
   "create_your_pershelf_account": "Create your Pershelf account",
   "confirm_password": "Confirm Password",
+  "confirm_password_help": "Please confirm your password",
   "check_back_later": "Check back later",
   "dont_have_an_account": "Don't have an account?",
   "didnt_like_it": "Didn't like it",
@@ -55,5 +56,52 @@
   "unknown_author":"Unknown Author",
   "unknown_title": "Unknown Title",
   "welcome_back": "Welcome back",
-  "your_journey": "Your Journey"
+  "your_journey": "Your Journey",
+  
+  "form_completion": "Form Completion",
+  "form_completion_not_started": "Not Started",
+  "form_completion_beginning": "Beginning",
+  "form_completion_in_progress": "In Progress",
+  "form_completion_almost_done": "Almost Done",
+  "form_completion_completed": "Completed",
+  
+  "name_required": "Name is required",
+  "name_min_length": "Name must be at least 3 characters long",
+  "name_help": "Name must be at least 3 characters long",
+  
+  "surname_required": "Surname is required",
+  "surname_min_length": "Surname must be at least 3 characters long",
+  "surname_help": "Surname is required",
+  
+  "username_required": "Username is required",
+  "username_min_length": "Username must be at least 5 characters long",
+  "username_invalid_chars": "Username can only contain letters, numbers, and underscores",
+  "username_help": "Username is required",
+  
+  "email_required": "Email is required",
+  "email_invalid": "Please enter a valid email address",
+  "email_help": "Email is required",
+  
+  "password_required": "Password is required",
+  "password_min_length": "Password must be at least 8 characters long",
+  "password_min_length_login": "Password must be at least 6 characters long",
+  "password_needs_lowercase": "Password must contain at least one lowercase letter",
+  "password_needs_uppercase": "Password must contain at least one uppercase letter",
+  "password_needs_number": "Password must contain at least one number",
+  "password_help": "Must be 8+ chars with uppercase, lowercase & number",
+  
+  "confirm_password_required": "Please confirm your password",
+  "confirm_password_mismatch": "Passwords do not match",
+  
+  "registering": "Registering...",
+  "logging_in": "Logging in...",
+  "registration_successful": "Registration Successful!",
+  "login_successful": "Login Successful!",
+  "redirecting_to_login": "Redirecting to login page...",
+  "redirecting_to_dashboard": "Redirecting to dashboard...",
+  
+  "quick_actions": "Quick Actions",
+  "search_books": "Search Books",
+  "my_profile": "My Profile",
+  "social": "Social"
 }

@@ -30,9 +30,9 @@ const Login = () => {
     switch (fieldName) {
       case 'email':
         if (!value.trim()) {
-          newErrors.email = "E-posta gerekli";
+          newErrors.email = t("email_required");
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors.email = "Geçerli bir e-posta adresi girin";
+          newErrors.email = t("email_invalid");
         } else {
           delete newErrors.email;
         }
@@ -40,9 +40,9 @@ const Login = () => {
 
       case 'password':
         if (!value) {
-          newErrors.password = "Şifre gerekli";
+          newErrors.password = t("password_required");
         } else if (value.length < 6) {
-          newErrors.password = "Şifre en az 6 karakter olmalı";
+          newErrors.password = t("password_min_length_login");
         } else {
           delete newErrors.password;
         }
@@ -84,13 +84,13 @@ const Login = () => {
     // Validate form before submitting
     const newErrors = {};
     if (!userInfo.email.trim()) {
-      newErrors.email = "E-posta gerekli";
+      newErrors.email = t("email_required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
-      newErrors.email = "Geçerli bir e-posta adresi girin";
+      newErrors.email = t("email_invalid");
     }
 
     if (!userInfo.password) {
-      newErrors.password = "Şifre gerekli";
+      newErrors.password = t("password_required");
     }
 
     setErrors(newErrors);
@@ -103,7 +103,7 @@ const Login = () => {
     setIsLoading(true);
 
     // Loading toast
-    const loadingToast = NotificationService.loading("Giriş yapılıyor...");
+    const loadingToast = NotificationService.loading(t("logging_in"));
 
     try {
       const response = await axios.post("/api/auth/login", userInfo);
@@ -172,8 +172,8 @@ const Login = () => {
         {isSuccess && (
           <div className="text-center mb-6">
             <div className="text-6xl mb-4">🎉</div>
-            <h3 className="text-xl font-bold text-green-400 mb-2">Giriş Başarılı!</h3>
-            <p className="text-white/80">Dashboard'a yönlendiriliyorsunuz...</p>
+            <h3 className="text-xl font-bold text-green-400 mb-2">{t("login_successful")}</h3>
+            <p className="text-white/80">{t("redirecting_to_dashboard")}</p>
           </div>
         )}
 
@@ -267,7 +267,7 @@ const Login = () => {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-700 border-t-transparent"></div>
-                    Giriş yapılıyor...
+                    {t("logging_in")}
                   </>
                 ) : (
                   <>

@@ -202,15 +202,6 @@ const Dashboard = () => {
     window.location.href = '/explore';
   };
 
-  const handleAddBook = () => {
-    NotificationService.info("Kitap ekleme özelliği yakında eklenecek 📚");
-  };
-
-  const handleWriteReview = () => {
-    NotificationService.info("İnceleme yazma sayfasına yönlendiriliyorsunuz...");
-    // Could navigate to a review writing page
-  };
-
   const handleViewProfile = () => {
     NotificationService.info("Profilinize yönlendiriliyorsunuz...");
     window.location.href = '/profile';
@@ -313,30 +304,14 @@ const Dashboard = () => {
 
             {/* Quick Actions */}
             <section>
-              <h3 className="text-2xl font-semibold mb-6 text-center">⚡ Hızlı Eylemler</h3>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <h3 className="text-2xl font-semibold mb-6 text-center">⚡ {t("quick_actions")}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   onClick={handleQuickSearch}
                   className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
                 >
                   <div className="text-3xl mb-2">🔍</div>
-                  <p className="text-sm font-medium">Kitap Ara</p>
-                </button>
-
-                <button
-                  onClick={handleAddBook}
-                  className="bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
-                >
-                  <div className="text-3xl mb-2">📚</div>
-                  <p className="text-sm font-medium">Kitap Ekle</p>
-                </button>
-
-                <button
-                  onClick={handleWriteReview}
-                  className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
-                >
-                  <div className="text-3xl mb-2">✍️</div>
-                  <p className="text-sm font-medium">İnceleme Yaz</p>
+                  <p className="text-sm font-medium">{t("search_books")}</p>
                 </button>
 
                 <button
@@ -344,7 +319,7 @@ const Dashboard = () => {
                   className="bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
                 >
                   <div className="text-3xl mb-2">👤</div>
-                  <p className="text-sm font-medium">Profilim</p>
+                  <p className="text-sm font-medium">{t("my_profile")}</p>
                 </button>
 
                 <button
@@ -352,7 +327,7 @@ const Dashboard = () => {
                   className="bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
                 >
                   <div className="text-3xl mb-2">👥</div>
-                  <p className="text-sm font-medium">Sosyal</p>
+                  <p className="text-sm font-medium">{t("social")}</p>
                 </button>
               </div>
             </section>

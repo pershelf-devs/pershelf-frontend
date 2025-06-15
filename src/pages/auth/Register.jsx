@@ -53,11 +53,11 @@ const Register = () => {
   // Progress bar text based on completion
   const getProgressText = () => {
     const percentage = getFormCompletionPercentage();
-    if (percentage === 0) return 'Başlamadınız';
-    if (percentage < 33) return 'Başlangıç';
-    if (percentage < 67) return 'Devam ediyor';
-    if (percentage < 100) return 'Neredeyse bitti';
-    return 'Tamamlandı';
+    if (percentage === 0) return t('form_completion_not_started');
+    if (percentage < 33) return t('form_completion_beginning');
+    if (percentage < 67) return t('form_completion_in_progress');
+    if (percentage < 100) return t('form_completion_almost_done');
+    return t('form_completion_completed');
   };
 
   const getFieldStatus = (fieldName) => {
@@ -90,9 +90,9 @@ const Register = () => {
     switch (fieldName) {
       case 'name':
         if (!value.trim()) {
-          newErrors.name = "İsim gerekli";
+          newErrors.name = t("name_required");
         } else if (value.trim().length < 3) {
-          newErrors.name = "İsim en az 3 karakter olmalı";
+          newErrors.name = t("name_min_length");
         } else {
           delete newErrors.name;
         }
@@ -100,9 +100,9 @@ const Register = () => {
 
       case 'surname':
         if (!value.trim()) {
-          newErrors.surname = "Soyisim gerekli";
+          newErrors.surname = t("surname_required");
         } else if (value.trim().length < 3) {
-          newErrors.surname = "Soyisim en az 3 karakter olmalı";
+          newErrors.surname = t("surname_min_length");
         } else {
           delete newErrors.surname;
         }
@@ -110,11 +110,11 @@ const Register = () => {
 
       case 'username':
         if (!value.trim()) {
-          newErrors.username = "Kullanıcı adı gerekli";
+          newErrors.username = t("username_required");
         } else if (value.trim().length < 5) {
-          newErrors.username = "Kullanıcı adı en az 5 karakter olmalı";
+          newErrors.username = t("username_min_length");
         } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-          newErrors.username = "Sadece harf, rakam ve alt çizgi kullanılabilir";
+          newErrors.username = t("username_invalid_chars");
         } else {
           delete newErrors.username;
         }
@@ -122,9 +122,9 @@ const Register = () => {
 
       case 'email':
         if (!value.trim()) {
-          newErrors.email = "E-posta gerekli";
+          newErrors.email = t("email_required");
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors.email = "Geçerli bir e-posta adresi girin";
+          newErrors.email = t("email_invalid");
         } else {
           delete newErrors.email;
         }
@@ -132,15 +132,15 @@ const Register = () => {
 
       case 'password':
         if (!value) {
-          newErrors.password = "Şifre gerekli";
+          newErrors.password = t("password_required");
         } else if (value.length < 8) {
-          newErrors.password = "Şifre en az 8 karakter olmalı";
+          newErrors.password = t("password_min_length");
         } else if (!/(?=.*[a-z])/.test(value)) {
-          newErrors.password = "En az bir küçük harf içermeli";
+          newErrors.password = t("password_needs_lowercase");
         } else if (!/(?=.*[A-Z])/.test(value)) {
-          newErrors.password = "En az bir büyük harf içermeli";
+          newErrors.password = t("password_needs_uppercase");
         } else if (!/(?=.*\d)/.test(value)) {
-          newErrors.password = "En az bir rakam içermeli";
+          newErrors.password = t("password_needs_number");
         } else {
           delete newErrors.password;
         }
@@ -148,9 +148,9 @@ const Register = () => {
 
       case 'confirm_password':
         if (!value) {
-          newErrors.confirm_password = "Şifre onayı gerekli";
+          newErrors.confirm_password = t("confirm_password_required");
         } else if (formData.password !== value) {
-          newErrors.confirm_password = "Şifreler eşleşmiyor";
+          newErrors.confirm_password = t("confirm_password_mismatch");
         } else {
           delete newErrors.confirm_password;
         }
@@ -169,55 +169,52 @@ const Register = () => {
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = t("name_required");
     } else if (formData.name.trim().length < 3) {
-      newErrors.name = "Name must be at least 3 characters long";
+      newErrors.name = t("name_min_length");
     }
 
     // Surname validation
     if (!formData.surname.trim()) {
-      newErrors.surname = "Surname is required";
+      newErrors.surname = t("surname_required");
     } else if (formData.surname.trim().length < 3) {
-      newErrors.surname = "Surname must be at least 3 characters long";
+      newErrors.surname = t("surname_min_length");
     }
 
     // Username validation
     if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
+      newErrors.username = t("username_required");
     } else if (formData.username.trim().length < 5) {
-      newErrors.username = "Username must be at least 5 characters long";
+      newErrors.username = t("username_min_length");
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = "Username can only contain letters, numbers, and underscores";
+      newErrors.username = t("username_invalid_chars");
     }
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = t("email_required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = t("email_invalid");
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else {
-      const password = formData.password;
-      if (password.length < 8) {
-        newErrors.password = "Password must be at least 8 characters long";
-      } else if (!/(?=.*[a-z])/.test(password)) {
-        newErrors.password = "Password must contain at least one lowercase letter";
-      } else if (!/(?=.*[A-Z])/.test(password)) {
-        newErrors.password = "Password must contain at least one uppercase letter";
-      } else if (!/(?=.*\d)/.test(password)) {
-        newErrors.password = "Password must contain at least one number";
-      }
+      newErrors.password = t("password_required");
+    } else if (formData.password.length < 8) {
+      newErrors.password = t("password_min_length");
+    } else if (!/(?=.*[a-z])/.test(formData.password)) {
+      newErrors.password = t("password_needs_lowercase");
+    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
+      newErrors.password = t("password_needs_uppercase");
+    } else if (!/(?=.*\d)/.test(formData.password)) {
+      newErrors.password = t("password_needs_number");
     }
 
     // Confirm password validation
     if (!formData.confirm_password) {
-      newErrors.confirm_password = "Please confirm your password";
+      newErrors.confirm_password = t("confirm_password_required");
     } else if (formData.password !== formData.confirm_password) {
-      newErrors.confirm_password = "Passwords do not match";
+      newErrors.confirm_password = t("confirm_password_mismatch");
     }
 
     setErrors(newErrors);
@@ -311,8 +308,8 @@ const Register = () => {
         {isSuccess && (
           <div className="text-center mb-6">
             <div className="text-6xl mb-4">🎉</div>
-            <h3 className="text-xl font-bold text-green-400 mb-2">Kayıt Başarılı!</h3>
-            <p className="text-white/80">Giriş sayfasına yönlendiriliyorsunuz...</p>
+            <h3 className="text-xl font-bold text-green-400 mb-2">{t("registration_successful")}</h3>
+            <p className="text-white/80">{t("redirecting_to_login")}</p>
           </div>
         )}
 
@@ -323,7 +320,7 @@ const Register = () => {
             {/* Progress Bar */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-white/70">Form Completion</span>
+                <span className="text-sm text-white/70">{t("form_completion")}</span>
                 <span className="text-sm text-white/70">{getProgressText()} ({getFormCompletionPercentage()}%)</span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-2">
@@ -361,7 +358,7 @@ const Register = () => {
                     <p className="text-red-300 text-xs ml-1">{errors.name}</p>
                   </div>
                 )}
-                <p className="text-white/50 text-xs mt-1">Name must be at least 3 characters long</p>
+                <p className="text-white/50 text-xs mt-1">{t("name_help")}</p>
               </div>
 
               <div>
@@ -390,7 +387,7 @@ const Register = () => {
                     <p className="text-red-300 text-xs ml-1">{errors.surname}</p>
                   </div>
                 )}
-                <p className="text-white/50 text-xs mt-1">Surname is required</p>
+                <p className="text-white/50 text-xs mt-1">{t("surname_help")}</p>
               </div>
 
               <div>
@@ -419,7 +416,7 @@ const Register = () => {
                     <p className="text-red-300 text-xs ml-1">{errors.username}</p>
                   </div>
                 )}
-                <p className="text-white/50 text-xs mt-1">Username is required</p>
+                <p className="text-white/50 text-xs mt-1">{t("username_help")}</p>
               </div>
 
               <div>
@@ -448,7 +445,7 @@ const Register = () => {
                     <p className="text-red-300 text-xs ml-1">{errors.email}</p>
                   </div>
                 )}
-                <p className="text-white/50 text-xs mt-1">Email is required</p>
+                <p className="text-white/50 text-xs mt-1">{t("email_help")}</p>
               </div>
 
               <div>
@@ -495,7 +492,7 @@ const Register = () => {
                   </div>
                 )}
                 <p className="text-white/60 text-xs mt-1">{t("password_requirements")}</p>
-                <p className="text-white/50 text-xs">Must be 8+ chars with uppercase, lowercase & number</p>
+                <p className="text-white/50 text-xs">{t("password_help")}</p>
               </div>
 
               <div>
@@ -556,7 +553,7 @@ const Register = () => {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-700 border-t-transparent"></div>
-                    Registering...
+                    {t("registering")}
                   </>
                 ) : (
                   <>
