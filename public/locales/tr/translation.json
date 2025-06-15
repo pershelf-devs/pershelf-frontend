@@ -250,5 +250,19 @@
   "no_books_found_category": "Kitap bulunamadı",
   "check_back_later_books": "Popüler kitaplar için daha sonra tekrar kontrol edin!",
   
-  "by": "yazan"
+  "by": "yazan",
+  
+  "loading_social_content": "Sosyal içerik yükleniyor...",
+  "friends_recent_reviews": "Arkadaşlarının Son Yorumları",
+  "no_friend_reviews_yet": "Henüz Arkadaş Yorumu Yok",
+  "not_following_anyone": "Henüz kimseyi takip etmiyorsun. Aşağıdan üyeleri keşfet!",
+  "following_no_reviews": "Takip ettiğin kişilerin henüz yorumu yok.",
+  "discoverable_members": "Keşfedebileceğin Üyeler",
+  "no_members_to_discover": "Keşfedilecek Üye Yok",
+  "no_members_available": "Şu anda önerebileceğimiz yeni üye bulunmuyor.",
+  "login_required_social": "Giriş Yapmanız Gerekiyor",
+  "login_for_social": "Sosyal özellikler için giriş yapın",
+  "untitled_comment": "Başlıksız Yorum",
+  "commented_on": "yorumlarda",
+  "book_object": "kitabını"
 }

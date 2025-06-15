@@ -56,7 +56,7 @@ const Header = () => {
             {t("explore")}
           </Link>
           <Link to="/social" className="hover:text-gray-300 transition">
-            Social
+            {t("social")}
           </Link>
         </nav>
 

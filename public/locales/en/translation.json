@@ -250,5 +250,19 @@
   "no_books_found_category": "No books found",
   "check_back_later_books": "Check back later for popular books!",
   
-  "by": "by"
+  "by": "by",
+  
+  "loading_social_content": "Loading social content...",
+  "friends_recent_reviews": "Friends' Recent Reviews",
+  "no_friend_reviews_yet": "No Friend Reviews Yet",
+  "not_following_anyone": "You're not following anyone yet. Discover members below!",
+  "following_no_reviews": "People you follow haven't reviewed any books yet.",
+  "discoverable_members": "Discoverable Members",
+  "no_members_to_discover": "No Members to Discover",
+  "no_members_available": "No new members available to recommend right now.",
+  "login_required_social": "Login Required",
+  "login_for_social": "Please login to access social features",
+  "untitled_comment": "Untitled Comment",
+  "commented_on": "commented on",
+  "book_object": "book"
 }
