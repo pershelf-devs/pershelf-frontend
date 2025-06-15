@@ -147,5 +147,38 @@
   "need_to_read_first": "You need to read this book first to write a review.",
   "need_to_read_to_like": "You need to read this book first to like it.",
   "need_to_read_to_favorite": "You need to read this book first to add it to favorites.",
-  "login_required": "Please login."
+  "login_required": "Please login.",
+  
+  "follow": "Follow",
+  "unfollow": "Unfollow",
+  "following": "Following",
+  "followers": "Followers",
+  "login_to_follow": "Please login to follow.",
+  "cannot_follow_yourself": "You cannot follow yourself.",
+  "follow_success": "Started following",
+  "unfollow_success": "Unfollowed",
+  "follow_error": "Follow operation failed.",
+  
+  "read_books": "Read Books",
+  "liked_books": "Liked Books",
+  "favorite_books": "Favorite Books",
+  "reading_list": "Reading List",
+  
+  "no_books_read": "No books read yet.",
+  "no_reviews_written": "No reviews written yet.",
+  "no_books_liked": "No books liked yet.",
+  "no_favorite_books": "No favorite books yet.",
+  "no_books_in_reading_list": "No books in reading list.",
+  
+  "loading_profile": "Loading profile...",
+  "loading": "Loading...",
+  "user_not_found": "User Not Found",
+  "user_not_found_description": "This user does not exist or profile is private.",
+  
+  "untitled_review": "Untitled Review",
+  "no_content": "No content found",
+  
+  "read": "Read",
+  "review": "Review",
+  "favorite": "Favorite"
 }

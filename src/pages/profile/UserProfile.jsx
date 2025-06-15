@@ -5,11 +5,14 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import BooksCard from '../../components/elements/BooksCard';
 import usePagination from '../../hooks/usePagination.jsx';
+import NotificationService from '../../utils/notificationService';
+import { useTranslation } from "react-i18next";
 
 const UserProfile = () => {
   const [searchParams] = useSearchParams();
   const userId = searchParams.get('id');
   const { currentUser } = useSelector((state) => state.user);
+  const { t } = useTranslation();
   
   const [activeTab, setActiveTab] = useState("Books");
   const [user, setUser] = useState(null);
@@ -188,27 +191,24 @@ const UserProfile = () => {
     }
   };
 
-  // Takip istatistiklerini yükle (endpoint hazır olmadığı için şimdilik dummy data)
+  // Takip istatistiklerini yükle
   const fetchFollowStats = async () => {
     try {
-      // TODO: Endpoint hazır olduğunda aşağıdaki kodlar aktif edilecek
-      /*
-      const response = await api.post("/users/get/follow-stats", userId);
+      const response = await api.post("/users/get/follow-stats", parseInt(userId));
       if (response?.data?.status?.code === "0") {
         setFollowStats({
           followers: response.data.followers || 0,
           following: response.data.following || 0,
           isFollowing: response.data.isFollowing || false
         });
+      } else {
+        // API'den başarısız response geldi
+        setFollowStats({
+          followers: 0,
+          following: 0,
+          isFollowing: false
+        });
       }
-      */
-      
-      // Şimdilik dummy data
-      setFollowStats({
-        followers: Math.floor(Math.random() * 100), // Random followers
-        following: Math.floor(Math.random() * 50), // Random following
-        isFollowing: false // Default false
-      });
     } catch (error) {
       console.error("Takip istatistikleri alınırken hata:", error);
       setFollowStats({
@@ -222,24 +222,47 @@ const UserProfile = () => {
   // Takip et/takibi bırak işlevi
   const handleFollowToggle = async () => {
     if (!currentUser) {
-      toast.info("Takip etmek için giriş yapmalısınız.");
+      toast.info(t("login_to_follow"));
       return;
     }
 
     if (currentUser.id === parseInt(userId)) {
-      toast.warning("Kendi profilinizi takip edemezsiniz.");
+      toast.warning(t("cannot_follow_yourself"));
       return;
     }
 
     setFollowLoading(true);
     try {
-      // TODO: Endpoint hazır olduğunda aşağıdaki kodlar aktif edilecek
-      /*
-      const endpoint = followStats.isFollowing ? "/users/unfollow" : "/users/follow";
-      const response = await api.post(endpoint, {
-        follower_id: currentUser.id,
-        following_id: parseInt(userId)
-      });
+      // Gerçek API endpoint'i kullan - farklı formatları dene
+      console.log("Sending follow request for userId:", parseInt(userId));
+      console.log("Current user:", currentUser?.id);
+      
+      // Önce sadece integer olarak dene
+      let response;
+      try {
+        response = await api.post("/follows/follow-user", parseInt(userId));
+      } catch (firstError) {
+        console.log("Integer format failed, trying object format...");
+        // Eğer integer format çalışmazsa object format dene
+        try {
+          response = await api.post("/follows/follow-user", {
+            user_id: parseInt(userId)
+          });
+        } catch (secondError) {
+          console.log("Object format failed, trying different field names...");
+          // Farklı field isimleri dene
+          try {
+            response = await api.post("/follows/follow-user", {
+              following_id: parseInt(userId),
+              follower_id: currentUser?.id
+            });
+          } catch (thirdError) {
+            console.log("All formats failed. API might not be ready yet.");
+            // Eğer API henüz hazır değilse, geçici mock response
+            throw new Error("Follow API endpoint is not ready yet. Please check with backend team.");
+          }
+        }
+      }
 
       if (response?.data?.status?.code === "0") {
         setFollowStats(prev => ({
@@ -248,22 +271,29 @@ const UserProfile = () => {
           followers: prev.isFollowing ? prev.followers - 1 : prev.followers + 1
         }));
         
-        toast.success(followStats.isFollowing ? "Takibi bıraktınız" : "Takip etmeye başladınız");
+        toast.success(followStats.isFollowing ? t("unfollow_success") : t("follow_success"));
+        
+        // NotificationService kullanarak daha güzel bildirim
+        if (!followStats.isFollowing) {
+          NotificationService.social.followSuccess(user?.username || 'User');
+        }
+      } else {
+        throw new Error(response?.data?.message || t("follow_error"));
       }
-      */
-
-      // Şimdilik UI için simülasyon
-      setFollowStats(prev => ({
-        ...prev,
-        isFollowing: !prev.isFollowing,
-        followers: prev.isFollowing ? prev.followers - 1 : prev.followers + 1
-      }));
-      
-      toast.success(followStats.isFollowing ? "Takibi bıraktınız" : "Takip etmeye başladınız");
       
     } catch (error) {
       console.error("Takip işlemi sırasında hata:", error);
-      toast.error("Takip işlemi başarısız oldu.");
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      
+      let errorMessage = t("follow_error");
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setFollowLoading(false);
     }
@@ -283,7 +313,7 @@ const UserProfile = () => {
         const paginatedBooks = getPaginatedData(userBooks, "Books");
         return (
           <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-white mb-4">📚 Okunan Kitaplar ({userBooks.length})</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">📚 {t("read_books")} ({userBooks.length})</h3>
             {userBooks.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -296,7 +326,7 @@ const UserProfile = () => {
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">📖</div>
-                <p>Henüz hiç kitap okunmamış.</p>
+                <p>{t("no_books_read")}</p>
               </div>
             )}
           </div>
@@ -306,11 +336,11 @@ const UserProfile = () => {
         const paginatedReviews = getPaginatedData(userReviews, "Reviews");
         return (
           <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-white mb-4">📝 Yorumlar ({userReviews.length})</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">📝 {t("reviews")} ({userReviews.length})</h3>
             {reviewsLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-                <p className="text-white/70 mt-2">Yorumlar yükleniyor...</p>
+                <p className="text-white/70 mt-2">{t("loading_reviews")}</p>
               </div>
             ) : userReviews.length > 0 ? (
               <>
@@ -364,8 +394,8 @@ const UserProfile = () => {
                             </div>
                           </div>
                           
-                          <h5 className="font-medium text-white mb-2">{review.review_title || review.title || 'Başlıksız Review'}</h5>
-                          <p className="text-white/80 text-sm leading-relaxed">{review.review_text || review.content || 'İçerik bulunamadı'}</p>
+                          <h5 className="font-medium text-white mb-2">{review.review_title || review.title || t("untitled_review")}</h5>
+                          <p className="text-white/80 text-sm leading-relaxed">{review.review_text || review.content || t("no_content")}</p>
                           
                           <div className="mt-3 text-xs text-white/60">
                             {new Date(review.created_at).toLocaleDateString('tr-TR', {
@@ -384,7 +414,7 @@ const UserProfile = () => {
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">💭</div>
-                <p>Henüz hiç yorum yapılmamış.</p>
+                <p>{t("no_reviews_written")}</p>
               </div>
             )}
           </div>
@@ -394,7 +424,7 @@ const UserProfile = () => {
         const paginatedLiked = getPaginatedData(likedBooks, "Liked");
         return (
           <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-white mb-4">❤️ Beğenilen Kitaplar ({likedBooks.length})</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">❤️ {t("liked_books")} ({likedBooks.length})</h3>
             {likedBooks.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -407,7 +437,7 @@ const UserProfile = () => {
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">💔</div>
-                <p>Henüz hiç kitap beğenilmemiş.</p>
+                <p>{t("no_books_liked")}</p>
               </div>
             )}
           </div>
@@ -417,7 +447,7 @@ const UserProfile = () => {
         const paginatedFavorites = getPaginatedData(favoriteBooks, "Favorites");
         return (
           <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-white mb-4">⭐ Favori Kitaplar ({favoriteBooks.length})</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">⭐ {t("favorite_books")} ({favoriteBooks.length})</h3>
             {favoriteBooks.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -430,7 +460,7 @@ const UserProfile = () => {
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">⭐</div>
-                <p>Henüz hiç favori kitap eklenmemiş.</p>
+                <p>{t("no_favorite_books")}</p>
               </div>
             )}
           </div>
@@ -440,7 +470,7 @@ const UserProfile = () => {
         const paginatedReadlist = getPaginatedData(readList, "Readlist");
         return (
           <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-white mb-4">📖 Okuma Listesi ({readList.length})</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">📖 {t("reading_list")} ({readList.length})</h3>
             {readList.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -453,7 +483,7 @@ const UserProfile = () => {
             ) : (
               <div className="text-center py-12 text-white/70">
                 <div className="text-4xl mb-4">📚</div>
-                <p>Okuma listesi boş.</p>
+                <p>{t("no_books_in_reading_list")}</p>
               </div>
             )}
           </div>
@@ -473,7 +503,7 @@ const UserProfile = () => {
         <div className="absolute inset-0 bg-black/70 z-0"></div>
         <div className="relative z-10 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white">Profil yükleniyor...</p>
+          <p className="text-white">{t("loading_profile")}</p>
         </div>
       </div>
     );
@@ -488,8 +518,8 @@ const UserProfile = () => {
         <div className="absolute inset-0 bg-black/70 z-0"></div>
         <div className="relative z-10 text-center text-white">
           <div className="text-6xl mb-4">😕</div>
-          <h2 className="text-2xl font-bold mb-2">Kullanıcı Bulunamadı</h2>
-          <p className="text-white/70">Bu kullanıcı mevcut değil veya profili gizli.</p>
+          <h2 className="text-2xl font-bold mb-2">{t("user_not_found")}</h2>
+          <p className="text-white/70">{t("user_not_found_description")}</p>
         </div>
       </div>
     );
@@ -536,17 +566,17 @@ const UserProfile = () => {
                     {followLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                        Yükleniyor...
+                        {t("loading")}
                       </>
                     ) : (
                       <>
                         {followStats.isFollowing ? (
                           <>
-                            <span className="group-hover:hidden">Takip ediliyor</span>
-                            <span className="hidden group-hover:inline">Takibi bırak</span>
+                            <span className="group-hover:hidden">{t("following")}</span>
+                            <span className="hidden group-hover:inline">{t("unfollow")}</span>
                           </>
                         ) : (
-                          'Takip et'
+                          t("follow")
                         )}
                       </>
                     )}
@@ -558,27 +588,27 @@ const UserProfile = () => {
               <div className="flex flex-wrap justify-center md:justify-start gap-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{userBooks.length}</div>
-                  <div className="text-sm text-white/70">Okunan</div>
+                  <div className="text-sm text-white/70">{t("read")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{userReviews.length}</div>
-                  <div className="text-sm text-white/70">Yorum</div>
+                  <div className="text-sm text-white/70">{t("review")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{likedBooks.length}</div>
-                  <div className="text-sm text-white/70">Beğeni</div>
+                  <div className="text-sm text-white/70">{t("like")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{favoriteBooks.length}</div>
-                  <div className="text-sm text-white/70">Favori</div>
+                  <div className="text-sm text-white/70">{t("favorite")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{followStats.followers}</div>
-                  <div className="text-sm text-white/70">Takipçi</div>
+                  <div className="text-sm text-white/70">{t("followers")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{followStats.following}</div>
-                  <div className="text-sm text-white/70">Takip</div>
+                  <div className="text-sm text-white/70">{t("following")}</div>
                 </div>
               </div>
             </div>
@@ -598,11 +628,11 @@ const UserProfile = () => {
                     : "text-white hover:bg-white/20"
                 }`}
               >
-                {tab === "Books" && "📚 Kitaplar"}
-                {tab === "Reviews" && "📝 Yorumlar"}
-                {tab === "Liked" && "❤️ Beğenilenler"}
-                {tab === "Favorites" && "⭐ Favoriler"}
-                {tab === "Readlist" && "📖 Okuma Listesi"}
+                {tab === "Books" && `📚 ${t("books")}`}
+                {tab === "Reviews" && `📝 ${t("reviews")}`}
+                {tab === "Liked" && `❤️ ${t("liked_books")}`}
+                {tab === "Favorites" && `⭐ ${t("favorite_books")}`}
+                {tab === "Readlist" && `📖 ${t("reading_list")}`}
               </button>
             ))}
           </div>

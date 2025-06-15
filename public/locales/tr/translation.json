@@ -148,5 +148,38 @@
   "need_to_read_first": "Bu kitap hakkında yorum yazmak için önce okumanız gerekiyor.",
   "need_to_read_to_like": "Bu kitabı beğenmek için önce okumanız gerekiyor.",
   "need_to_read_to_favorite": "Bu kitabı favoriye eklemek için önce okumanız gerekiyor.",
-  "login_required": "Lütfen giriş yapın."
+  "login_required": "Lütfen giriş yapın.",
+  
+  "follow": "Takip et",
+  "unfollow": "Takibi bırak",
+  "following": "Takip ediliyor",
+  "followers": "Takipçi",
+  "login_to_follow": "Takip etmek için giriş yapmalısınız.",
+  "cannot_follow_yourself": "Kendi profilinizi takip edemezsiniz.",
+  "follow_success": "Takip etmeye başladınız",
+  "unfollow_success": "Takibi bıraktınız",
+  "follow_error": "Takip işlemi başarısız oldu.",
+  
+  "read_books": "Okunan Kitaplar",
+  "liked_books": "Beğenilen Kitaplar",
+  "favorite_books": "Favori Kitaplar",
+  "reading_list": "Okuma Listesi",
+  
+  "no_books_read": "Henüz hiç kitap okunmamış.",
+  "no_reviews_written": "Henüz hiç yorum yapılmamış.",
+  "no_books_liked": "Henüz hiç kitap beğenilmemiş.",
+  "no_favorite_books": "Henüz hiç favori kitap yok.",
+  "no_books_in_reading_list": "Okuma listesinde kitap yok.",
+  
+  "loading_profile": "Profil yükleniyor...",
+  "loading": "Yükleniyor...",
+  "user_not_found": "Kullanıcı Bulunamadı",
+  "user_not_found_description": "Bu kullanıcı mevcut değil veya profili gizli.",
+  
+  "untitled_review": "Başlıksız Review",
+  "no_content": "İçerik bulunamadı",
+  
+  "read": "Okunan",
+  "review": "Yorum",
+  "favorite": "Favori"
 }

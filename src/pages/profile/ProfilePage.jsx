@@ -154,22 +154,19 @@ const ProfilePage = () => {
 
       case 'fetchFollowStats':
         try {
-          // TODO: Endpoint hazır olduğunda aşağıdaki kodlar aktif edilecek
-          /*
           const response = await api.post("/users/get/follow-stats", currentUser?.id);
           if (response?.data?.status?.code === "0") {
             setFollowStats({
               followers: response.data.followers || 0,
               following: response.data.following || 0
             });
+          } else {
+            // API'den başarısız response geldi
+            setFollowStats({
+              followers: 0,
+              following: 0
+            });
           }
-          */
-          
-          // Şimdilik dummy data
-          setFollowStats({
-            followers: Math.floor(Math.random() * 200), // Random followers
-            following: Math.floor(Math.random() * 100)  // Random following
-          });
         } catch (error) {
           console.error("Takip istatistikleri alınırken hata:", error);
           setFollowStats({
