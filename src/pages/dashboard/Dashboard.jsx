@@ -13,24 +13,6 @@ import NotificationService from "../../utils/notificationService";
 //   { title: "The Book Thief", author: "Markus Zusak", image: "/images/book3.jpg" },
 // ];
 
-const popularReviews = [
-  {
-    user: "Mevlutcan",
-    book: "1984",
-    rating: 4.0,
-    comment: "Gerçekten düşündürücü ama biraz ağırdı.",
-    image: "/images/book1.jpg",
-    likes: 32000,
-  },
-  {
-    user: "Ataberk",
-    book: "Sapiens",
-    rating: 4.5,
-    comment: "Tarihi bu kadar akıcı anlatmak büyük başarı!",
-    image: "/images/book2.jpg",
-    likes: 29900,
-  },
-];
 
 const Dashboard = () => {
   const [userInfo, setUserInfo] = useState(null);
@@ -76,9 +58,9 @@ const Dashboard = () => {
           apiCache.set(cacheKey, books);
           
           // Success notification (sadece data varsa göster)
-          if (books.length > 0) {
-            NotificationService.info(`${books.length} popüler kitap yüklendi 📚`, { autoClose: 2000 });
-          }
+          // if (books.length > 0) {
+          //   NotificationService.info(`${books.length} popüler kitap yüklendi 📚`, { autoClose: 2000 });
+          // }
         } else {
           // API'den hata kodu döndü
           NotificationService.warning("Popüler kitaplar yüklenirken bir sorun oluştu.");

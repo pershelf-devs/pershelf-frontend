@@ -245,7 +245,7 @@ const BookDetail = () => {
 
         if (bookData) {
           setBook(bookData);
-          NotificationService.success(`"${bookData.title}" kitabı yüklendi 📖`, { autoClose: 2000 });
+          // NotificationService.success(`"${bookData.title}" kitabı yüklendi 📖`, { autoClose: 2000 });
         } else {
           const errorMsg = "Kitap bulunamadı veya sunucu geçersiz format döndürüyor.";
           setError(errorMsg);
@@ -333,9 +333,9 @@ const BookDetail = () => {
             setAllReviews(reviewsWithUsers);
             
             // Success notification (sadece review varsa)
-            if (reviewsWithUsers.length > 0) {
-              NotificationService.info(`${reviewsWithUsers.length} inceleme yüklendi 💬`, { autoClose: 2000 });
-            }
+            // if (reviewsWithUsers.length > 0) {
+            //   NotificationService.info(`${reviewsWithUsers.length} inceleme yüklendi 💬`, { autoClose: 2000 });
+            // }
             
           } catch (userFetchError) {
             console.error("❌ Kullanıcı bilgileri alınırken hata:", userFetchError);
@@ -683,12 +683,13 @@ const BookDetail = () => {
               </div>
             )}
 
-            {book.reads !== undefined && (
+{book.reads !== undefined && (
               <div className="flex items-center gap-2">
                 <span className="text-blue-400">📖</span>
                 <span className="text-white/80 text-sm">{book.reads.toLocaleString()} {t("reads")}</span>
               </div>
             )}
+
 
             {book.isbn && (
               <p className="text-white/60 text-sm">ISBN: {book.isbn}</p>

@@ -32,6 +32,12 @@ const UserProfile = () => {
   });
   const [followLoading, setFollowLoading] = useState(false);
   
+  // Modal states
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [followersList, setFollowersList] = useState([]);
+  const [followingList, setFollowingList] = useState([]);
+  
   // Pagination hook'u
   const { getPaginatedData, renderPagination } = usePagination(5);
 
@@ -194,21 +200,63 @@ const UserProfile = () => {
   // Takip istatistiklerini yükle
   const fetchFollowStats = async () => {
     try {
-      const response = await api.post("/users/get/follow-stats", parseInt(userId));
-      if (response?.data?.status?.code === "0") {
-        setFollowStats({
-          followers: response.data.followers || 0,
-          following: response.data.following || 0,
-          isFollowing: response.data.isFollowing || false
-        });
-      } else {
-        // API'den başarısız response geldi
-        setFollowStats({
-          followers: 0,
-          following: 0,
-          isFollowing: false
-        });
+      // Followers için API çağrısı
+      const followersResponse = await api.post("/follows/get/followed-users", parseInt(userId));
+      console.log("Followers API Response:", followersResponse?.data);
+      
+      // Following için ayrı API çağrısı
+      const followingResponse = await api.post("/follows/get/follower-users", parseInt(userId));
+      console.log("Following API Response:", followingResponse?.data);
+      
+      let followersCount = 0;
+      let followingCount = 0;
+      let isFollowing = false;
+      
+      // Followers sayısını hesapla
+      if (followersResponse?.data?.status?.code === "0") {
+        const followersUsers = followersResponse.data.users || [];
+        const followers = followersResponse.data.followers || [];
+        
+        if (followersUsers.length > 0) {
+          followersCount = followersUsers.length;
+          setFollowersList(followersUsers); // Modal için listeyi kaydet
+          // Bu kullanıcıyı takip edip etmediğimizi kontrol et
+          isFollowing = currentUser ? 
+            followersUsers.some(user => user.id === currentUser.id || user.user_id === currentUser.id) : false;
+        } else {
+          followersCount = followers.length;
+          setFollowersList(followers); // Modal için listeyi kaydet
+          isFollowing = currentUser ? 
+            followers.some(follower => follower.user_id === currentUser.id) : false;
+        }
       }
+      
+      // Following sayısını hesapla
+      if (followingResponse?.data?.status?.code === "0") {
+        const followingUsers = followingResponse.data.users || [];
+        const following = followingResponse.data.following || [];
+        
+        if (followingUsers.length > 0) {
+          followingCount = followingUsers.length;
+          setFollowingList(followingUsers); // Modal için listeyi kaydet
+          } else {
+          followingCount = following.length;
+          setFollowingList(following); // Modal için listeyi kaydet
+        }
+      }
+      
+      setFollowStats({
+        followers: followersCount,
+        following: followingCount,
+        isFollowing: isFollowing
+      });
+      
+      console.log("Updated follow stats:", {
+        followers: followersCount,
+        following: followingCount,
+        isFollowing: isFollowing
+      });
+      
     } catch (error) {
       console.error("Takip istatistikleri alınırken hata:", error);
       setFollowStats({
@@ -271,12 +319,7 @@ const UserProfile = () => {
           followers: prev.isFollowing ? prev.followers - 1 : prev.followers + 1
         }));
         
-        toast.success(followStats.isFollowing ? t("unfollow_success") : t("follow_success"));
-        
-        // NotificationService kullanarak daha güzel bildirim
-        if (!followStats.isFollowing) {
-          NotificationService.social.followSuccess(user?.username || 'User');
-        }
+
       } else {
         throw new Error(response?.data?.message || t("follow_error"));
       }
@@ -525,6 +568,75 @@ const UserProfile = () => {
     );
   }
 
+  // Modal component
+  const FollowModal = ({ isOpen, onClose, title, users, type }) => {
+    if (!isOpen) return null;
+
+    const getUserImage = (user) => {
+      if (user?.image_base64 && user.image_base64.startsWith('data:image/')) {
+        return user.image_base64;
+      }
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || user?.name || 'User')}&background=6366f1&color=fff&size=128`;
+    };
+
+    const getUserId = (user) => {
+      return user?.id || user?.user_id || user?._id;
+    };
+
+    const getUserName = (user) => {
+      return user?.username || user?.name || 'Unknown User';
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-hidden">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-white">{title}</h3>
+            <button
+              onClick={onClose}
+              className="text-white/70 hover:text-white text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="overflow-y-auto max-h-[60vh]">
+            {users.length > 0 ? (
+              <div className="space-y-3">
+                {users.map((user, index) => (
+                  <div key={getUserId(user) || index} className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors">
+                    <img
+                      src={getUserImage(user)}
+                      alt={getUserName(user)}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="text-white font-medium">{getUserName(user)}</p>
+                      {user?.email && (
+                        <p className="text-white/70 text-sm">{user.email}</p>
+                      )}
+                    </div>
+                    <a
+                      href={`/user/profile?id=${getUserId(user)}`}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                    >
+                      Profil
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-white/70">
+                <div className="text-4xl mb-2">👥</div>
+                <p>Henüz {type === 'followers' ? 'takipçi' : 'takip edilen'} yok</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div 
       className="relative min-h-screen bg-cover bg-center text-white"
@@ -586,27 +698,33 @@ const UserProfile = () => {
               
               {/* İstatistikler */}
               <div className="flex flex-wrap justify-center md:justify-start gap-6">
-                <div className="text-center">
+                <div className="text-center min-w-[60px]">
                   <div className="text-2xl font-bold text-white">{userBooks.length}</div>
                   <div className="text-sm text-white/70">{t("read")}</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center min-w-[60px]">
                   <div className="text-2xl font-bold text-white">{userReviews.length}</div>
                   <div className="text-sm text-white/70">{t("review")}</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center min-w-[60px]">
                   <div className="text-2xl font-bold text-white">{likedBooks.length}</div>
                   <div className="text-sm text-white/70">{t("like")}</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center min-w-[60px]">
                   <div className="text-2xl font-bold text-white">{favoriteBooks.length}</div>
                   <div className="text-sm text-white/70">{t("favorite")}</div>
                 </div>
-                <div className="text-center">
+                <div 
+                  className="text-center min-w-[60px] cursor-pointer hover:bg-white/5 rounded-lg transition-colors"
+                  onClick={() => setShowFollowersModal(true)}
+                >
                   <div className="text-2xl font-bold text-white">{followStats.followers}</div>
                   <div className="text-sm text-white/70">{t("followers")}</div>
                 </div>
-                <div className="text-center">
+                <div 
+                  className="text-center min-w-[60px] cursor-pointer hover:bg-white/5 rounded-lg transition-colors"
+                  onClick={() => setShowFollowingModal(true)}
+                >
                   <div className="text-2xl font-bold text-white">{followStats.following}</div>
                   <div className="text-sm text-white/70">{t("following")}</div>
                 </div>
@@ -642,6 +760,23 @@ const UserProfile = () => {
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-8">
           {renderTabContent()}
         </div>
+        
+        {/* Modals */}
+        <FollowModal
+          isOpen={showFollowersModal}
+          onClose={() => setShowFollowersModal(false)}
+          title={`${t("followers")} (${followStats.followers})`}
+          users={followersList}
+          type="followers"
+        />
+        
+        <FollowModal
+          isOpen={showFollowingModal}
+          onClose={() => setShowFollowingModal(false)}
+          title={`${t("following")} (${followStats.following})`}
+          users={followingList}
+          type="following"
+        />
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import usePagination from '../../hooks/usePagination.jsx';
 
 const ProfilePage = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('books');
+  const [activeTab, setActiveTab] = useState('Books');
   const { currentUser } = useSelector((state) => state.user);
   const [user, setUser] = useState(null);
   const [userReviews, setUserReviews] = useState([]);
@@ -29,6 +29,12 @@ const ProfilePage = () => {
   // Image upload states
   const [selectedImage, setSelectedImage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Modal states
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [followersList, setFollowersList] = useState([]);
+  const [followingList, setFollowingList] = useState([]);
 
   const handleProfileManagement = async (action, data = null) => {
     switch (action) {
@@ -156,19 +162,55 @@ const ProfilePage = () => {
 
       case 'fetchFollowStats':
         try {
-          const response = await api.post("/users/get/follow-stats", currentUser?.id);
-          if (response?.data?.status?.code === "0") {
-            setFollowStats({
-              followers: response.data.followers || 0,
-              following: response.data.following || 0
-            });
-          } else {
-            // API'den başarısız response geldi
-            setFollowStats({
-              followers: 0,
-              following: 0
-            });
+          // Followers için API çağrısı
+          const followersResponse = await api.post("/follows/get/followed-users", currentUser?.id);
+          console.log("ProfilePage Followers API Response:", followersResponse?.data);
+          
+          // Following için ayrı API çağrısı
+          const followingResponse = await api.post("/follows/get/follower-users", currentUser?.id);
+          console.log("ProfilePage Following API Response:", followingResponse?.data);
+          
+          let followersCount = 0;
+          let followingCount = 0;
+          
+          // Followers sayısını hesapla
+          if (followersResponse?.data?.status?.code === "0") {
+            const followersUsers = followersResponse.data.users || [];
+            const followers = followersResponse.data.followers || [];
+            
+            if (followersUsers.length > 0) {
+              followersCount = followersUsers.length;
+              setFollowersList(followersUsers); // Modal için listeyi kaydet
+            } else {
+              followersCount = followers.length;
+              setFollowersList(followers); // Modal için listeyi kaydet
+            }
           }
+          
+          // Following sayısını hesapla
+          if (followingResponse?.data?.status?.code === "0") {
+            const followingUsers = followingResponse.data.users || [];
+            const following = followingResponse.data.following || [];
+            
+            if (followingUsers.length > 0) {
+              followingCount = followingUsers.length;
+              setFollowingList(followingUsers); // Modal için listeyi kaydet
+            } else {
+              followingCount = following.length;
+              setFollowingList(following); // Modal için listeyi kaydet
+            }
+          }
+          
+          setFollowStats({
+            followers: followersCount,
+            following: followingCount
+          });
+          
+          console.log("ProfilePage Updated follow stats:", {
+            followers: followersCount,
+            following: followingCount
+          });
+          
         } catch (error) {
           console.error("Takip istatistikleri alınırken hata:", error);
           setFollowStats({
@@ -289,6 +331,75 @@ const ProfilePage = () => {
     };
   }, []);
 
+  // Modal component
+  const FollowModal = ({ isOpen, onClose, title, users, type }) => {
+    if (!isOpen) return null;
+
+    const getUserImage = (user) => {
+      if (user?.image_base64 && user.image_base64.startsWith('data:image/')) {
+        return user.image_base64;
+      }
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || user?.name || 'User')}&background=6366f1&color=fff&size=128`;
+    };
+
+    const getUserId = (user) => {
+      return user?.id || user?.user_id || user?._id;
+    };
+
+    const getUserName = (user) => {
+      return user?.username || user?.name || 'Unknown User';
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-hidden">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-white">{title}</h3>
+            <button
+              onClick={onClose}
+              className="text-white/70 hover:text-white text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="overflow-y-auto max-h-[60vh]">
+            {users.length > 0 ? (
+              <div className="space-y-3">
+                {users.map((user, index) => (
+                  <div key={getUserId(user) || index} className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors">
+                    <img
+                      src={getUserImage(user)}
+                      alt={getUserName(user)}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="text-white font-medium">{getUserName(user)}</p>
+                      {user?.email && (
+                        <p className="text-white/70 text-sm">{user.email}</p>
+                      )}
+                    </div>
+                    <a
+                      href={`/user/profile?id=${getUserId(user)}`}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                    >
+                      Profil
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-white/70">
+                <div className="text-4xl mb-2">👥</div>
+                <p>Henüz {type === 'followers' ? 'takipçi' : 'takip edilen'} yok</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#2a1a0f] text-[#f8f8f2] pt-16 bg-cover bg-center"
       style={{ backgroundImage: "url('/images/profile-settings-bg.png')" }}>
@@ -350,7 +461,19 @@ const ProfilePage = () => {
           <div>
             <h2 className="text-2xl font-bold">@{user?.username}</h2>
             <p className="text-sm text-[#e5ded5]">
-              {t("following")} {followStats.following} · {t("followers")} {followStats.followers}
+              <span 
+                className="cursor-pointer hover:text-white transition-colors"
+                onClick={() => setShowFollowingModal(true)}
+              >
+                {t("following")} {followStats.following}
+              </span>
+              {" · "}
+              <span 
+                className="cursor-pointer hover:text-white transition-colors"
+                onClick={() => setShowFollowersModal(true)}
+              >
+                {t("followers")} {followStats.followers}
+              </span>
             </p>
             {selectedImage && (
               <div className="mt-2 flex gap-2">
@@ -574,6 +697,23 @@ const ProfilePage = () => {
             )}
           </div>
         )}
+        
+        {/* Modals */}
+        <FollowModal
+          isOpen={showFollowersModal}
+          onClose={() => setShowFollowersModal(false)}
+          title={`${t("followers")} (${followStats.followers})`}
+          users={followersList}
+          type="followers"
+        />
+        
+        <FollowModal
+          isOpen={showFollowingModal}
+          onClose={() => setShowFollowingModal(false)}
+          title={`${t("following")} (${followStats.following})`}
+          users={followingList}
+          type="following"
+        />
       </div>
     </div>
   );
