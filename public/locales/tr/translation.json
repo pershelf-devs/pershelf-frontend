@@ -264,5 +264,11 @@
   "login_for_social": "Sosyal özellikler için giriş yapın",
   "untitled_comment": "Başlıksız Yorum",
   "commented_on": "yorumlarda",
-  "book_object": "kitabını"
+  "book_object": "kitabını",
+  
+  "pick_of_the_day": "Günün Seçimi",
+  "discover_this_amazing_book_today": "Bu harika kitabı bugün keşfedin!",
+  "click_to_explore_details": "Detayları keşfetmek için tıklayın",
+  "no_pick_of_the_day": "Henüz Günün Seçimi Yok",
+  "todays_featured_book": "Bugünün Öne Çıkan Kitabı"
 }

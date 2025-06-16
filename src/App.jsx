@@ -9,9 +9,9 @@ function App() {
   return (
     <Router>
       <Header />
-      <div>
+      <main className="pt-20 min-h-screen">
         <AppRoutes />
-      </div>
+      </main>
       <Footer />
       <ToastContainer
         position="top-right"

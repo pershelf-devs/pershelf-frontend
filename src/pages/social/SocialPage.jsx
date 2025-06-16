@@ -174,11 +174,11 @@ const SocialPage = () => {
         style={{ backgroundImage: "url('/images/social-bg.png')" }}
       >
         <div className="absolute inset-0 bg-black/70 z-0"></div>
-        <div className="relative z-10 text-center">
-          <div className="text-6xl mb-4">🔐</div>
-          <h2 className="text-2xl font-bold mb-2">{t("login_required_social")}</h2>
-          <p className="text-white/70 mb-4">{t("login_for_social")}</p>
-          <Link to="/auth" className="bg-white text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition">
+        <div className="relative z-10 text-center px-4">
+          <div className="text-4xl sm:text-6xl mb-4">🔐</div>
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">{t("login_required_social")}</h2>
+          <p className="text-white/70 mb-4 text-sm sm:text-base">{t("login_for_social")}</p>
+          <Link to="/auth" className="bg-white text-gray-900 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium hover:bg-gray-100 transition text-sm sm:text-base">
             {t("login")}
           </Link>
         </div>
@@ -195,7 +195,7 @@ const SocialPage = () => {
       <div className="absolute inset-0 bg-black/70  z-0"></div>
 
       {/* İçerik */}
-      <div className="relative z-10 max-w-6xl mx-auto py-20 px-6 space-y-16">
+      <div className="relative z-10 max-w-6xl mx-auto py-8 sm:py-16 lg:py-20 px-4 sm:px-6 space-y-8 sm:space-y-12 lg:space-y-16">
 
         {loading ? (
           <div className="text-center py-12">
@@ -206,8 +206,8 @@ const SocialPage = () => {
           <>
             {/* Reviews - Takip edilen kişilerin yorumları */}
             <section>
-              <h2 className="text-3xl font-bold mb-8">📚 {t("friends_recent_reviews")}</h2>
-              <div className="space-y-6">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">📚 {t("friends_recent_reviews")}</h2>
+              <div className="space-y-4 sm:space-y-6">
                 {friendsReviews.length > 0 ? (
                   <>
                                         {getPaginatedData(friendsReviews, "Reviews").map((review, index) => (
@@ -303,8 +303,8 @@ const SocialPage = () => {
 
             {/* Featured Members - Keşfedilecek üyeler */}
             <section>
-              <h2 className="text-3xl font-bold mb-8">🌟 {t("discoverable_members")}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">🌟 {t("discoverable_members")}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
                 {randomMembers.length > 0 ? (
                   randomMembers.map((member, index) => (
                     <div key={member.id || member._id || index} className="bg-white/10 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/15 transition">

@@ -564,12 +564,12 @@ const Explore = () => {
     >
       <div className="absolute inset-0 bg-black/70 z-0"></div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 space-y-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-16 lg:py-24 space-y-8 sm:space-y-12 lg:space-y-16">
         <div>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
             {query ? t("search_results") : t("explore_books")}
           </h1>
-          <p className="text-lg text-white/80">
+          <p className="text-base sm:text-lg text-white/80">
             {query 
               ? `${t("results_for")} "${query}"${searchResults.length > 0 ? ` • ${searchResults.length} ${t("books_found")}` : ''}`
               : t("discover_trending_reads")
@@ -580,7 +580,7 @@ const Explore = () => {
         {/* 🔍 Search Results */}
         {query && (
           <section>
-            <h2 className="text-2xl font-bold mb-6">🔍 {t("search_results")}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">🔍 {t("search_results")}</h2>
             
             {searchLoading && (
               <div className="text-center py-12">
@@ -615,8 +615,8 @@ const Explore = () => {
           <>
             {/* 📚 Most Read Books */}
             <section>
-              <h2 className="text-2xl font-bold mb-6">📚 {t("most_read_books")}</h2>
-              <div className="grid md:grid-cols-3 gap-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">📚 {t("most_read_books")}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {loading
                   ? [...Array(3)].map((_, index) => (
                       <div
@@ -718,8 +718,8 @@ const Explore = () => {
 
             {/* 🗂️ Book Categories */}
             <section>
-              <h2 className="text-2xl font-bold mb-6">🗂️ {t("book_categories")}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">🗂️ {t("book_categories")}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {loading 
                   ? [...Array(6)].map((_, index) => (
                       <div
@@ -744,8 +744,8 @@ const Explore = () => {
 
             {/* 💬 User Recommendations */}
             <section>
-              <h2 className="text-2xl font-bold mb-6">💬 {t("user_recommendations")}</h2>
-              <div className="grid md:grid-cols-3 gap-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">💬 {t("user_recommendations")}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {recommendations.length === 0
                   ? [...Array(3)].map((_, index) => (
                       <div

@@ -17,9 +17,9 @@ import NotificationService from "../../utils/notificationService";
 const Dashboard = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [popularBooks, setPopularBooks] = useState([]);
-  const [popularReviews, setPopularReviews] = useState([]);
+  const [pickOfTheDay, setPickOfTheDay] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [pickLoading, setPickLoading] = useState(true);
   const { currentUser } = useSelector((state) => state.user);
   const { t } = useTranslation();
 
@@ -42,63 +42,73 @@ const Dashboard = () => {
     if (cachedData) {
       setPopularBooks(cachedData);
       setLoading(false);
-      setReviewsLoading(false);
-      return;
+    } else {
+      // Popular books'u backend'den çek
+      api
+        .post("/books/discover/most-reads", { limit: 3 })
+        .then(res => {
+          if (res.data?.status?.code === "0") {
+            const books = res.data.books || [];
+            setPopularBooks(books);
+            
+            // Global cache'e kaydet
+            apiCache.set(cacheKey, books);
+          } else {
+            // API'den hata kodu döndü
+            NotificationService.warning("Popüler kitaplar yüklenirken bir sorun oluştu.");
+          }
+        })
+        .catch(err => {
+          console.error("API error:", err.response?.data || err.message);
+          
+          // Network error handling
+          if (err.code === 'NETWORK_ERROR' || !err.response) {
+            NotificationService.networkError();
+          } else if (err.response?.status === 500) {
+            NotificationService.serverError();
+          } else if (err.response?.status === 429) {
+            NotificationService.rateLimitError();
+          } else {
+            NotificationService.error("Popüler kitaplar yüklenirken hata oluştu.");
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
 
-    // Popular books'u backend'den çek
-    api
-      .post("/books/discover/most-reads", { limit: 3 })
-      .then(res => {
-        if (res.data?.status?.code === "0") {
-          const books = res.data.books || [];
-          setPopularBooks(books);
-          
-          // Global cache'e kaydet
-          apiCache.set(cacheKey, books);
-          
-          // Success notification (sadece data varsa göster)
-          // if (books.length > 0) {
-          //   NotificationService.info(`${books.length} popüler kitap yüklendi 📚`, { autoClose: 2000 });
-          // }
-        } else {
-          // API'den hata kodu döndü
-          NotificationService.warning("Popüler kitaplar yüklenirken bir sorun oluştu.");
-        }
-      })
-      .catch(err => {
-        console.error("API error:", err.response?.data || err.message);
-        
-        // Network error handling
-        if (err.code === 'NETWORK_ERROR' || !err.response) {
-          NotificationService.networkError();
-        } else if (err.response?.status === 500) {
-          NotificationService.serverError();
-        } else if (err.response?.status === 429) {
-          NotificationService.rateLimitError();
-        } else {
-          NotificationService.error("Popüler kitaplar yüklenirken hata oluştu.");
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-    // TODO: Popular reviews API endpoint'i eklendiğinde bu kısım aktifleştirilecek
-    // axios
-    //   .post("/api/reviews/discover/popular", { limit: 3 })
-    //   .then(res => {
-    //     if (res.data?.status?.code === "0") {
-    //       setPopularReviews(res.data.reviews || []);
-    //     }
-    //   })
-    //   .catch(err => {
-    //     console.error("Reviews API error:", err.response?.data || err.message);
-    //   })
-    //   .finally(() => setReviewsLoading(false));
-
-    // Şimdilik reviews loading'i false yap
-    setReviewsLoading(false);
+    // Pick of the Day - günün seçili kitabını getir
+    const pickCacheKey = 'pick-of-the-day';
+    const cachedPick = apiCache.get(pickCacheKey);
+    
+    if (cachedPick) {
+      setPickOfTheDay(cachedPick);
+      setPickLoading(false);
+    } else {
+      // Günün seçimi için rastgele popüler bir kitap al
+      api
+        .post("/books/discover/most-reads", { limit: 10 })
+        .then(res => {
+          if (res.data?.status?.code === "0" && res.data.books?.length > 0) {
+            // Rastgele bir kitap seç (daha çeşitlilik için)
+            const randomIndex = Math.floor(Math.random() * res.data.books.length);
+            const todaysPick = res.data.books[randomIndex];
+            setPickOfTheDay(todaysPick);
+            
+            // Cache'e kaydet (gece yarısına kadar)
+            const tomorrow = new Date();
+            tomorrow.setHours(24, 0, 0, 0);
+            const timeUntilMidnight = tomorrow.getTime() - Date.now();
+            apiCache.set(pickCacheKey, todaysPick, timeUntilMidnight);
+          }
+        })
+        .catch(err => {
+          console.error("Pick of the day API error:", err.response?.data || err.message);
+        })
+        .finally(() => {
+          setPickLoading(false);
+        });
+    }
   }, []);
 
   // Kitap kapağı için akıllı resim seçimi - useCallback ile optimize et
@@ -201,15 +211,15 @@ const Dashboard = () => {
     >
       <div className="absolute inset-0 bg-black/70 z-0"></div>
 
-      <div className="relative z-10 max-w-7xl mx-auto py-20 px-6">
+      <div className="relative z-10 max-w-7xl mx-auto py-8 sm:py-16 lg:py-20 px-4 sm:px-6">
         {/* Welcome Message */}
-        <section className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">{t("welcome_back")}, {getUserDisplayName()}! 🎉</h2>
-          <p className="text-white/80 text-lg">{t("heres_what_we_ve_been_reading")} 📚</p>
+        <section className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">{t("welcome_back")}, {getUserDisplayName()}! 🎉</h2>
+          <p className="text-white/80 text-base sm:text-lg">{t("heres_what_we_ve_been_reading")} 📚</p>
         </section>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           
           {/* Left Decorative Panel */}
           <div className="lg:col-span-2 hidden lg:block">
@@ -244,12 +254,12 @@ const Dashboard = () => {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-8 space-y-16">
+          <div className="lg:col-span-8 space-y-8 sm:space-y-12 lg:space-y-16">
             
             {/* Popular Books */}
             <section>
-              <h3 className="text-2xl font-semibold mb-6 text-center">📚 {t("popular_this_month")}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center">📚 {t("popular_this_month")}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {loading
                   ? [...Array(3)].map((_, index) => (
                       <div
@@ -286,8 +296,8 @@ const Dashboard = () => {
 
             {/* Quick Actions */}
             <section>
-              <h3 className="text-2xl font-semibold mb-6 text-center">⚡ {t("quick_actions")}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center">⚡ {t("quick_actions")}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button
                   onClick={handleQuickSearch}
                   className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 p-4 rounded-lg text-center transition-all hover:scale-105"
@@ -314,60 +324,96 @@ const Dashboard = () => {
               </div>
             </section>
 
-            {/* Popular Reviews */}
+            {/* Pick Of The Day */}
             <section>
-              <h3 className="text-2xl font-semibold mb-6 text-center">💬 {t("popular_reviews_this_month")}</h3>
-              {reviewsLoading ? (
+              <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center">🌟 {t("pick_of_the_day")}</h3>
+              {pickLoading ? (
                 <div className="space-y-6">
-                  {[...Array(2)].map((_, index) => (
-                    <div
-                      key={index}
-                      className="bg-[#3b2316]/90 p-6 rounded-lg shadow animate-pulse"
-                    >
-                      <div className="flex gap-4 items-center">
-                        <div className="w-24 h-36 bg-white/20 rounded"></div>
-                        <div className="flex-1 space-y-3">
-                          <div className="h-4 bg-white/20 rounded w-1/3"></div>
-                          <div className="h-3 bg-white/20 rounded w-full"></div>
-                          <div className="h-3 bg-white/20 rounded w-2/3"></div>
+                  <div className="bg-[#3b2316]/90 p-6 rounded-lg shadow animate-pulse">
+                    <div className="flex gap-4 items-center">
+                      <div className="w-24 h-36 bg-white/20 rounded"></div>
+                      <div className="flex-1 space-y-3">
+                        <div className="h-4 bg-white/20 rounded w-1/3"></div>
+                        <div className="h-3 bg-white/20 rounded w-full"></div>
+                        <div className="h-3 bg-white/20 rounded w-2/3"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : pickOfTheDay ? (
+                <Link 
+                  to={`/book/details?id=${pickOfTheDay.id || pickOfTheDay._id}`}
+                  className="block"
+                  onClick={() => NotificationService.info(`Günün seçimi: ${pickOfTheDay.title} detaylarına yönlendiriliyorsunuz...`)}
+                >
+                  <div className="bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20 border border-yellow-500/50 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <div className="flex flex-col sm:flex-row gap-6 items-center">
+                      {/* Kitap Kapağı */}
+                      <div className="relative flex-shrink-0">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg blur opacity-75"></div>
+                        <img
+                          src={getBookImage(pickOfTheDay)}
+                          alt={pickOfTheDay.title || "Book"}
+                          className="relative w-32 h-44 sm:w-36 sm:h-48 object-cover rounded-lg border-2 border-white/20"
+                          onError={(e) => {
+                            if (e.target.src !== window.location.origin + "/images/book-placeholder.png") {
+                              e.target.src = "/images/book-placeholder.png";
+                            }
+                          }}
+                        />
+                        {/* Yıldız badge */}
+                        <div className="absolute -top-3 -right-3 bg-yellow-500 text-black p-2 rounded-full shadow-lg">
+                          ⭐
+                        </div>
+                      </div>
+                      
+                      {/* Kitap Bilgileri */}
+                      <div className="flex-1 text-center sm:text-left space-y-3">
+                        <div className="space-y-2">
+                          <h4 className="text-xl sm:text-2xl font-bold text-white">
+                            {pickOfTheDay.title || "Unknown Title"}
+                          </h4>
+                          <p className="text-yellow-300 font-semibold">
+                            {t("by")} {pickOfTheDay.author || "Unknown Author"}
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <p className="text-white/90 text-sm leading-relaxed line-clamp-3">
+                            {pickOfTheDay.description || pickOfTheDay.summary || t("discover_this_amazing_book_today")}
+                          </p>
+                          
+                          <div className="flex flex-wrap gap-3 justify-center sm:justify-start items-center">
+                            {pickOfTheDay.genre && (
+                              <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                                {pickOfTheDay.genre}
+                              </span>
+                            )}
+                            {pickOfTheDay.published_year && (
+                              <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                                {pickOfTheDay.published_year}
+                              </span>
+                            )}
+                            <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs font-semibold">
+                              🌟 {t("pick_of_the_day")}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <p className="text-white/70 text-sm">
+                            👆 {t("click_to_explore_details")}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : popularReviews.length > 0 ? (
-                <div className="space-y-6">
-                  {popularReviews.map((review, index) => (
-                    <div
-                      key={review._id || index}
-                      className="bg-[#3b2316]/90 p-6 rounded-lg shadow flex gap-4 items-center"
-                    >
-                      <img
-                        src={review.book?.image_url || review.image || "/images/book-placeholder.png"}
-                        alt={review.book?.title || "Book"}
-                        className="w-24 h-36 object-cover rounded"
-                        onError={(e) => {
-                          if (e.target.src !== window.location.origin + "/images/book-placeholder.png") {
-                            e.target.src = "/images/book-placeholder.png";
-                          }
-                        }}
-                      />
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold">@{review.user?.username || "Anonymous"}</span>
-                          <span className="text-yellow-400">{review.rating?.toFixed(1) || "0.0"} / 5.0</span>
-                        </div>
-                        <p className="text-sm text-white/80 italic">"{review.comment || t("no_comment")}"</p>
-                        <p className="text-xs text-white/60 mt-1">❤️ {(review.likes || 0).toLocaleString()} {t("likes")}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                </Link>
               ) : (
                 <div className="text-center py-12">
-                  <div className="text-6xl mb-4">💬</div>
-                  <h4 className="text-xl font-semibold mb-2">{t("no_reviews_yet")}</h4>
-                  <p className="text-white/70">{t("be_the_first_to_share_your_thoughts_on_a_book")}!</p>
+                  <div className="text-6xl mb-4">🌟</div>
+                  <h4 className="text-xl font-semibold mb-2">{t("no_pick_of_the_day")}</h4>
+                  <p className="text-white/70">{t("check_back_later")}!</p>
                 </div>
               )}
             </section>

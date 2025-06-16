@@ -264,5 +264,11 @@
   "login_for_social": "Please login to access social features",
   "untitled_comment": "Untitled Comment",
   "commented_on": "commented on",
-  "book_object": "book"
+  "book_object": "book",
+  
+  "pick_of_the_day": "Pick Of The Day",
+  "discover_this_amazing_book_today": "Discover this amazing book today!",
+  "click_to_explore_details": "Click to explore details",
+  "no_pick_of_the_day": "No Pick Of The Day Yet",
+  "todays_featured_book": "Today's Featured Book"
 }
