@@ -9,7 +9,7 @@ function App() {
   return (
     <Router>
       <Header />
-      <main className="pt-20 min-h-screen">
+      <main className="pt-20 min-h-screen bg-black">
         <AppRoutes />
       </main>
       <Footer />

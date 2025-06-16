@@ -43,38 +43,38 @@ const Dashboard = () => {
       setPopularBooks(cachedData);
       setLoading(false);
     } else {
-      // Popular books'u backend'den çek
-      api
-        .post("/books/discover/most-reads", { limit: 3 })
-        .then(res => {
-          if (res.data?.status?.code === "0") {
-            const books = res.data.books || [];
-            setPopularBooks(books);
-            
-            // Global cache'e kaydet
-            apiCache.set(cacheKey, books);
-          } else {
-            // API'den hata kodu döndü
-            NotificationService.warning("Popüler kitaplar yüklenirken bir sorun oluştu.");
-          }
-        })
-        .catch(err => {
-          console.error("API error:", err.response?.data || err.message);
+    // Popular books'u backend'den çek
+    api
+      .post("/books/discover/most-reads", { limit: 3 })
+      .then(res => {
+        if (res.data?.status?.code === "0") {
+          const books = res.data.books || [];
+          setPopularBooks(books);
           
-          // Network error handling
-          if (err.code === 'NETWORK_ERROR' || !err.response) {
-            NotificationService.networkError();
-          } else if (err.response?.status === 500) {
-            NotificationService.serverError();
-          } else if (err.response?.status === 429) {
-            NotificationService.rateLimitError();
-          } else {
-            NotificationService.error("Popüler kitaplar yüklenirken hata oluştu.");
-          }
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+          // Global cache'e kaydet
+          apiCache.set(cacheKey, books);
+        } else {
+          // API'den hata kodu döndü
+          NotificationService.warning("Popüler kitaplar yüklenirken bir sorun oluştu.");
+        }
+      })
+      .catch(err => {
+        console.error("API error:", err.response?.data || err.message);
+        
+        // Network error handling
+        if (err.code === 'NETWORK_ERROR' || !err.response) {
+          NotificationService.networkError();
+        } else if (err.response?.status === 500) {
+          NotificationService.serverError();
+        } else if (err.response?.status === 429) {
+          NotificationService.rateLimitError();
+        } else {
+          NotificationService.error("Popüler kitaplar yüklenirken hata oluştu.");
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
     }
 
     // Pick of the Day - günün seçili kitabını getir
@@ -330,15 +330,15 @@ const Dashboard = () => {
               {pickLoading ? (
                 <div className="space-y-6">
                   <div className="bg-[#3b2316]/90 p-6 rounded-lg shadow animate-pulse">
-                    <div className="flex gap-4 items-center">
-                      <div className="w-24 h-36 bg-white/20 rounded"></div>
-                      <div className="flex-1 space-y-3">
-                        <div className="h-4 bg-white/20 rounded w-1/3"></div>
-                        <div className="h-3 bg-white/20 rounded w-full"></div>
-                        <div className="h-3 bg-white/20 rounded w-2/3"></div>
+                      <div className="flex gap-4 items-center">
+                        <div className="w-24 h-36 bg-white/20 rounded"></div>
+                        <div className="flex-1 space-y-3">
+                          <div className="h-4 bg-white/20 rounded w-1/3"></div>
+                          <div className="h-3 bg-white/20 rounded w-full"></div>
+                          <div className="h-3 bg-white/20 rounded w-2/3"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
                 </div>
               ) : pickOfTheDay ? (
                 <Link 
@@ -355,12 +355,12 @@ const Dashboard = () => {
                           src={getBookImage(pickOfTheDay)}
                           alt={pickOfTheDay.title || "Book"}
                           className="relative w-32 h-44 sm:w-36 sm:h-48 object-cover rounded-lg border-2 border-white/20"
-                          onError={(e) => {
-                            if (e.target.src !== window.location.origin + "/images/book-placeholder.png") {
-                              e.target.src = "/images/book-placeholder.png";
-                            }
-                          }}
-                        />
+                        onError={(e) => {
+                          if (e.target.src !== window.location.origin + "/images/book-placeholder.png") {
+                            e.target.src = "/images/book-placeholder.png";
+                          }
+                        }}
+                      />
                         {/* Yıldız badge */}
                         <div className="absolute -top-3 -right-3 bg-yellow-500 text-black p-2 rounded-full shadow-lg">
                           ⭐
@@ -407,7 +407,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                </div>
                 </Link>
               ) : (
                 <div className="text-center py-12">

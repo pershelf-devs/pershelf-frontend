@@ -54,7 +54,9 @@ const Header = () => {
   }, [isMobileMenuOpen]);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-black/20 backdrop-blur-md text-white shadow-lg z-50 border-b border-white/10">
+    <header className="fixed top-0 left-0 w-full bg-black text-white z-50 border-b border-black">
+
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between relative">
         <Link 
           to={currentUser ? "/dashboard" : "/"} 
