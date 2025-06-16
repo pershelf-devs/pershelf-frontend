@@ -58,8 +58,8 @@ const Header = () => {
 
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between relative">
-        <Link 
-          to={currentUser ? "/dashboard" : "/"} 
+        <Link
+          to={currentUser ? "/dashboard" : "/"}
           className="text-xl sm:text-2xl font-bold text-white"
         >
           Pershelf
@@ -67,8 +67,8 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex space-x-8">
-          <Link 
-            to={currentUser ? "/dashboard" : "/"} 
+          <Link
+            to={currentUser ? "/dashboard" : "/"}
             className="hover:text-gray-300 transition"
           >
             {t("home")}
@@ -83,25 +83,25 @@ const Header = () => {
 
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Search Bar - Hidden on very small screens */}
+          {/*
           <div className="hidden sm:block">
             <ExpandableSearchBar onSearch={handleSearch} />
           </div>
+            */}
 
           {/* Language Switcher */}
           <div className="flex space-x-1 sm:space-x-2">
             <button
               onClick={() => handleChangeLanguage("en")}
-              className={`px-1.5 sm:px-2 py-1 text-xs rounded ${
-                i18n.language === "en" ? "bg-white text-black" : "text-white"
-              }`}
+              className={`px-1.5 sm:px-2 py-1 text-xs rounded ${i18n.language === "en" ? "bg-white text-black" : "text-white"
+                }`}
             >
               EN
             </button>
             <button
               onClick={() => handleChangeLanguage("tr")}
-              className={`px-1.5 sm:px-2 py-1 text-xs rounded ${
-                i18n.language === "tr" ? "bg-white text-black" : "text-white"
-              }`}
+              className={`px-1.5 sm:px-2 py-1 text-xs rounded ${i18n.language === "tr" ? "bg-white text-black" : "text-white"
+                }`}
             >
               TR
             </button>
@@ -113,10 +113,10 @@ const Header = () => {
             className="md:hidden p-2 text-white hover:bg-white/10 rounded-md transition-colors"
             aria-label="Toggle mobile menu"
           >
-            <svg 
-              className="w-6 h-6" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               {isMobileMenuOpen ? (
@@ -130,15 +130,15 @@ const Header = () => {
           {/* Desktop User Menu */}
           {currentUser ? (
             <div className="relative hidden md:block">
-              <button 
+              <button
                 onClick={() => setIsMenuOpen(prev => !prev)}
                 className="flex items-center gap-3 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full text-white text-sm font-medium transition-all duration-200 cursor-pointer"
-              > 
+              >
                 {currentUser?.image_base64 ? (
                   <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-white/30">
-                    <img 
-                      src={currentUser.image_base64} 
-                      alt="Profile" 
+                    <img
+                      src={currentUser.image_base64}
+                      alt="Profile"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -150,11 +150,11 @@ const Header = () => {
                   </div>
                 )}
                 <span>{currentUser?.username}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className={`h-4 w-4 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-4 w-4 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -167,9 +167,9 @@ const Header = () => {
                     <div className="flex items-center gap-3">
                       {currentUser?.image_base64 ? (
                         <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[#2a1a0f]/20">
-                          <img 
-                            src={currentUser.image_base64} 
-                            alt="Profile" 
+                          <img
+                            src={currentUser.image_base64}
+                            alt="Profile"
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -187,8 +187,8 @@ const Header = () => {
                     </div>
                   </div>
                   <div className="py-1">
-                    <Link 
-                      to="/profile" 
+                    <Link
+                      to="/profile"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -197,8 +197,8 @@ const Header = () => {
                       </svg>
                       {t("Profile")}
                     </Link>
-                    <Link 
-                      to="/settings" 
+                    <Link
+                      to="/settings"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -209,7 +209,7 @@ const Header = () => {
                       {t("Settings")}
                     </Link>
                     <div className="border-t border-gray-100 my-1"></div>
-                    <button 
+                    <button
                       onClick={() => {
                         setIsMenuOpen(false);
                         handleLogout();
@@ -238,34 +238,36 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           ref={menuRef}
           className="md:hidden bg-black/95 backdrop-blur-md border-t border-white/10"
         >
           <div className="px-4 py-4 space-y-3">
             {/* Mobile Search Bar */}
+            {/*
             <div className="sm:hidden">
               <ExpandableSearchBar onSearch={handleSearch} />
             </div>
+              */}
 
             {/* Mobile Navigation Links */}
             <div className="space-y-2">
-              <Link 
-                to={currentUser ? "/dashboard" : "/"} 
+              <Link
+                to={currentUser ? "/dashboard" : "/"}
                 className="block py-2 text-white hover:text-gray-300 transition"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("home")}
               </Link>
-              <Link 
-                to="/explore" 
+              <Link
+                to="/explore"
                 className="block py-2 text-white hover:text-gray-300 transition"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("explore")}
               </Link>
-              <Link 
-                to="/social" 
+              <Link
+                to="/social"
                 className="block py-2 text-white hover:text-gray-300 transition"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -279,9 +281,9 @@ const Header = () => {
                 <div className="flex items-center gap-3 mb-3">
                   {currentUser?.image_base64 ? (
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-white/30">
-                      <img 
-                        src={currentUser.image_base64} 
-                        alt="Profile" 
+                      <img
+                        src={currentUser.image_base64}
+                        alt="Profile"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -297,8 +299,8 @@ const Header = () => {
                     <p className="text-gray-300 text-sm">{currentUser?.email}</p>
                   </div>
                 </div>
-                <Link 
-                  to="/profile" 
+                <Link
+                  to="/profile"
                   className="flex items-center gap-2 py-2 text-white hover:text-gray-300 transition"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -307,8 +309,8 @@ const Header = () => {
                   </svg>
                   {t("Profile")}
                 </Link>
-                <Link 
-                  to="/settings" 
+                <Link
+                  to="/settings"
                   className="flex items-center gap-2 py-2 text-white hover:text-gray-300 transition"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -318,7 +320,7 @@ const Header = () => {
                   </svg>
                   {t("Settings")}
                 </Link>
-                <button 
+                <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     handleLogout();
